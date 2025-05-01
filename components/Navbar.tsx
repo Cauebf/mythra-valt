@@ -21,7 +21,7 @@ export default function Navbar() {
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center">
           <Sheet>
@@ -37,8 +37,10 @@ export default function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`text-lg ${
-                      pathname === item.href ? "font-medium text-primary" : "text-muted-foreground"
+                    className={`font-serif text-lg hover:text-primary transition-colors ${
+                      pathname === item.href
+                        ? "text-foreground"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {item.name}
@@ -48,7 +50,7 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="font-serif text-xl font-bold mr-8">
+          <Link href="/" className="font-serif text-3xl font-bold text-primary mr-8">
             Antiqua
           </Link>
 
@@ -57,10 +59,10 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm ${
+                className={`font-serif text-sm hover:text-primary transition-colors ${
                   pathname === item.href
-                    ? "font-medium text-primary"
-                    : "text-muted-foreground hover:text-foreground transition-colors"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
                 {item.name}
