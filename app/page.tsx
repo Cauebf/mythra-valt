@@ -9,7 +9,7 @@ export default function Home() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1552248524-10d9a7e4841c?q=80&w=1920&auhref=format&fit=crop"
-            alt="Antique collection"
+            alt="Coleção antiga"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/50"></div>
@@ -17,12 +17,10 @@ export default function Home() {
 
         <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-white mb-4 max-w-3xl">
-            Discover Timeless Treasures for Your Collection
+            Descubra Tesouros Atemporais para Sua Coleção
           </h1>
           <p className="text-xl text-white/80 mb-8 max-w-2xl">
-            Explore our curated selection of rare antiques and vintage
-            collectibles. Shop fixed-price items or participate in exclusive
-            auctions.
+            Explore nossa seleção cuidadosamente curada de antiguidades raras e objetos de coleção vintage. Compre itens com preço fixo ou participe de leilões exclusivos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
@@ -30,7 +28,7 @@ export default function Home() {
               size="lg"
               className="text-medium bg-primary hover:bg-primary/90 text-white text-lg font-normal py-6 px-8"
             >
-              <Link href="/shop">Explore Shop</Link>
+              <Link href="/shop">Explorar Loja</Link>
             </Button>
             <Button
               asChild
@@ -38,21 +36,20 @@ export default function Home() {
               variant="outline"
               className="bg-transparent border-white text-white hover:bg-white/10 hover:text-white text-lg font-normal py-6 px-8"
             >
-              <Link href="/auctions">View Auctions</Link>
+              <Link href="/auctions">Ver Leilões</Link>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Categories Section */}
-      <section className="py-20 bg-antique-paper paper-texture">
+      <section className="py-20 bg-[#F9F6EF]">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-serif font-medium mb-4 text-center">
-            Browse by Category
+            Navegue por Categoria
           </h2>
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            Our collection spans centuries of craftsmanship across various
-            categories. Find the perfect addition to your home.
+            Nossa coleção abrange séculos de artesanato em diversas categorias. Encontre o item perfeito para complementar seu ambiente.
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -63,13 +60,13 @@ export default function Home() {
               <div className="aspect-square bg-muted">
                 <img
                   src="https://images.unsplash.com/photo-1611486212557-88be5ff6f941?q=80&w=600&auhref=format&fit=crop"
-                  alt="Furniture"
+                  alt="Móveis"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
               <h3 className="absolute bottom-3 left-3 text-xl font-serif text-white">
-                Furniture
+                Móveis
               </h3>
             </Link>
 
@@ -80,13 +77,13 @@ export default function Home() {
               <div className="aspect-square bg-muted">
                 <img
                   src="https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?q=80&w=600&auhref=format&fit=crop"
-                  alt="Art"
+                  alt="Arte"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
               <h3 className="absolute bottom-3 left-3 text-xl font-serif text-white">
-                Art
+                Arte
               </h3>
             </Link>
 
@@ -96,14 +93,14 @@ export default function Home() {
             >
               <div className="aspect-square bg-muted">
                 <img
-                  src="https://images.unsplash.com/photo-1603513492128-ba7bc9b3e143?q=80&w=600&auhref=format&fit=crop"
-                  alt="Silverware"
+                  src="https://images.unsplash.com/photo-1599408981219-70ea455d4b0b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHZpZGVvZ2FtZSUyMHJldHJvfGVufDB8fDB8fHww"
+                  alt="Videogames"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
               <h3 className="absolute bottom-3 left-3 text-xl font-serif text-white">
-                Silverware
+                Videogames
               </h3>
             </Link>
 
@@ -113,14 +110,14 @@ export default function Home() {
             >
               <div className="aspect-square bg-muted">
                 <img
-                  src="https://images.unsplash.com/photo-1616101054811-26065ff58233?q=80&w=600&auhref=format&fit=crop"
-                  alt="Jewelry"
+                  src="https://images.unsplash.com/photo-1631832721838-44118cd1fad8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGpld2VscnklMjBhbnRpcXVlfGVufDB8fDB8fHww"
+                  alt="Joias"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
               <h3 className="absolute bottom-3 left-3 text-xl font-serif text-white">
-                Jewelry
+                Jóias
               </h3>
             </Link>
           </div>
@@ -136,33 +133,27 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-serif mb-6">
-                Bringing History to Your Home
+                Trazendo História para o Seu Lar
               </h2>
               <p className="mb-4">
-                At Relic Realm, we're passionate about preserving history and
-                connecting collectors with authentic, carefully curated
-                antiquities. Each item in our collection tells a story and holds
-                within it the craftsmanship of a bygone era.
+                Na Cassio Ruins, somos apaixonados por preservar a história e conectar colecionadores com antiguidades autênticas e cuidadosamente selecionadas. Cada item em nossa coleção conta uma história e carrega em si o artesanato de uma era passada.
               </p>
               <p className="mb-6">
-                Our team of expert authenticators ensures that every piece meets
-                our rigorous standards for quality and provenance. Whether
-                you're an experienced collector or just beginning your journey,
-                we're here to help you find treasures that speak to you.
+                Nossa equipe de especialistas em autenticação garante que cada peça atenda aos nossos rigorosos padrões de qualidade e procedência. Seja você um colecionador experiente ou alguém iniciando sua jornada, estamos aqui para ajudá-lo a encontrar tesouros que tenham significado para você.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   asChild
                   className="bg-[#D4AF37] text-foreground hover:bg-[#D4AF37]/90"
                 >
-                  <Link href="/auctions">Join Our Auctions</Link>
+                  <Link href="/auctions">Participe de Nossos Leilões</Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
                   className="border-white text-foreground hover:bg-white/10 hover:text-white"
                 >
-                  <Link href="/create-listing">Sell With Us</Link>
+                  <Link href="/create-listing">Venda Conosco</Link>
                 </Button>
               </div>
             </div>
@@ -171,9 +162,9 @@ export default function Home() {
               <div className="absolute -bottom-6 -right-6 w-64 h-64 bg-antique-gold/10 rounded-full"></div>
               <div className="relative z-10 rounded-lg overflow-hidden antique-border">
                 <img
-                  src="https://images.unsplash.com/photo-1523159888831-35827362e837?q=80&w=1000&auhref=format&fit=crop"
-                  alt="Antique shop interior"
-                  className="w-full h-full object-cover"
+                  src="https://images.unsplash.com/photo-1541987736-41744aa9b7d7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGFudGlxdWV8ZW58MHwwfDB8fHww"
+                  alt="Interior de loja de antiguidades"
+                  className="w-full h-100 object-cover"
                 />
               </div>
             </div>
