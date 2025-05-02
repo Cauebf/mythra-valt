@@ -1,6 +1,7 @@
+import AuctionCard from "@/components/AuctionCard";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
-import { featuredProducts } from "@/lib/placeholder-data";
+import { activeAuctions, featuredProducts } from "@/lib/placeholder-data";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -154,6 +155,28 @@ export default function Home() {
               <div key={product.id} className="h-full">
                 <ProductCard product={product} />
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Active Auctions Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-serif font-medium">
+              Leilões em Andamento
+            </h2>
+            <Link
+              href="/auctions"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {activeAuctions.map((auction) => (
+              <AuctionCard key={auction.id} auction={auction} />
             ))}
           </div>
         </div>

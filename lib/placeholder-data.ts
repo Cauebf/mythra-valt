@@ -39,7 +39,8 @@ const activeAuctions = [
     name: "Pintura a Óleo Século XIX",
     currentBid: 5600,
     endTime: "2023-12-31T23:59:59",
-    image: "/placeholder.svg?height=300&width=300",
+    image:
+      "https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cGludHVyYSUyMGElMjBvbGVvfGVufDB8fDB8fHww",
     bids: 12,
   },
   {
@@ -47,15 +48,16 @@ const activeAuctions = [
     name: "Cômoda Vitoriana",
     currentBid: 4200,
     endTime: "2023-12-28T18:30:00",
-    image: "/placeholder.svg?height=300&width=300",
+    image:
+      "https://images.unsplash.com/photo-1739999064266-ea6ea21beaab?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGNvbW9kYSUyMHZpdG9yaWFuYXxlbnwwfDB8MHx8fDA%3D",
     bids: 8,
   },
   {
     id: "3",
-    name: "Conjunto de Porcelana Chinesa",
+    name: "Super Nintendo",
     currentBid: 3800,
     endTime: "2023-12-29T20:15:00",
-    image: "/placeholder.svg?height=300&width=300",
+    image: "https://images.unsplash.com/photo-1630051822408-b80dde2f5681?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bmludGVuZG98ZW58MHwwfDB8fHww",
     bids: 15,
   },
 ];
