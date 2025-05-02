@@ -46,14 +46,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </Link>
-      <CardContent className="flex-grow">
-        <Link href={`/produtos/${id}`}>
+
+      <CardContent className="flex-grow flex flex-col justify-between">
+        <Link href={`/produtos/${id}`} className="flex flex-col flex-grow">
           <h3 className="font-medium text-lg mb-2 line-clamp-2 hover:text-primary transition-colors">
             {name}
           </h3>
-          <p className="font-bold text-lg">{formattedPrice}</p>
+
+          <div className="mt-auto">
+            <p className="font-bold text-lg">{formattedPrice}</p>
+          </div>
         </Link>
       </CardContent>
+
       <CardFooter className="p-4 pt-0">
         <Button className="w-full cursor-pointer" size="sm">
           <ShoppingCart className="mr-2 h-4 w-4" />
