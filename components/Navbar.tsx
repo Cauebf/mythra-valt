@@ -21,8 +21,10 @@ export default function Navbar() {
 
   const navItems = [
     { name: "Início", href: "/" },
-    { name: "Produtos", href: "/produtos" },
-    { name: "Leilões", href: "/leiloes" },
+    { name: "Produtos", href: "/products" },
+    { name: "Leilões", href: "/auctions" },
+    { name: "Vender", href: "/sell" },
+    { name: "Contato", href: "/contact" },
   ];
 
   return (
@@ -90,7 +92,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-0"
+                className="absolute right-0 top-0 cursor-pointer"
                 onClick={() => setIsSearchOpen(false)}
               >
                 <Search className="h-4 w-4" />
