@@ -141,7 +141,7 @@ export default function ProductsPage() {
       <div>
         <h3 className="font-medium mb-4">Categorias</h3>
         <Select value={filters.category} onValueChange={handleCategoryChange}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full cursor-pointer">
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
@@ -265,7 +265,7 @@ export default function ProductsPage() {
                 className="w-full sm:w-auto"
               />
               <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[195px] cursor-pointer">
                   <SelectValue placeholder="Ordenar por" />
                 </SelectTrigger>
                 <SelectContent>

@@ -221,7 +221,7 @@ export default function AuctionsPage() {
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-serif font-medium mb-1">
+              <h1 className="text-2xl font-serif font-bold mb-1">
                 Leilões
               </h1>
               <p className="text-muted-foreground">
