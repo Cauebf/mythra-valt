@@ -1,4 +1,4 @@
-const featuredProducts = [
+const products = [
   {
     id: "1",
     name: "Relógio de Bolso Vintage",
@@ -6,6 +6,8 @@ const featuredProducts = [
     image:
       "https://images.unsplash.com/photo-1677445166019-4fa91a090e49?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmVsb2dpbyUyMHZpbnRhZ2V8ZW58MHx8MHx8fDA%3D",
     category: "Relógios",
+    era: "Século XIX",
+    condition: "Bom",
   },
   {
     id: "2",
@@ -14,6 +16,8 @@ const featuredProducts = [
     image:
       "https://images.unsplash.com/photo-1679658430346-ebb9d485abe4?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGdyYW1vZm9uZXxlbnwwfHwwfHx8MA%3D%3D",
     category: "Música",
+    era: "Século XIX",
+    condition: "Bom",
   },
   {
     id: "3",
@@ -22,6 +26,8 @@ const featuredProducts = [
     image:
       "https://images.unsplash.com/photo-1542765347-c1dc0e9f9883?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTV8fG1hcXVpbmElMjBkZSUyMGVzY3JldmVyfGVufDB8MHwwfHx8MA%3D%3D",
     category: "Escritório",
+    era: "Século XX",
+    condition: "Bom",
   },
   {
     id: "4",
@@ -30,6 +36,48 @@ const featuredProducts = [
     image:
       "https://images.unsplash.com/photo-1705623337603-58e849d027f2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bmludGVuZG8lMjA2NHxlbnwwfDB8MHx8fDA%3D",
     category: "Videogames",
+    era: "Século XXI",
+    condition: "Bom",
+  },
+  {
+    id: "5",
+    name: "Cadeira Estilo Luís XV",
+    price: 4500,
+    image:
+      "https://images.unsplash.com/photo-1531777319985-9dca28eeae64?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2FkZWlyYSUyMHJlaXxlbnwwfDB8MHx8fDA%3D",
+    category: "Móveis",
+    era: "Século XVIII",
+    condition: "Bom",
+  },
+  {
+    id: "6",
+    name: "Conjunto de Porcelana Chinesa",
+    price: 3200,
+    image:
+      "https://images.unsplash.com/photo-1592304502437-178c9adcf9ca?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHBvcmNlbGFuYXxlbnwwfDB8MHx8fDA%3D",
+    category: "Porcelana",
+    era: "Século XIX",
+    condition: "Excelente",
+  },
+  {
+    id: "7",
+    name: "Espelho Veneziano Antigo",
+    price: 2900,
+    image:
+      "https://images.unsplash.com/photo-1741882632293-632545b88247?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGVzcGVsaG8lMjB2ZW5lemlhbm98ZW58MHwwfDB8fHww",
+    category: "Decoração",
+    era: "Século XVIII",
+    condition: "Restaurado",
+  },
+  {
+    id: "8",
+    name: "Máquina de Fliperama",
+    price: 3900,
+    image:
+      "https://images.unsplash.com/photo-1721372261034-525a25737f5f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fG1hcXVpbmElMjBkZSUyMGZsaXBlcmFtYXxlbnwwfDB8MHx8fDA%3D",
+    category: "Arcade",
+    era: "Século XX",
+    condition: "Excelente",
   },
 ];
 
@@ -102,6 +150,8 @@ const auctions = [
   },
 ];
 
+const featuredProducts = products.slice(0, 4);
+
 const activeAuctions = auctions.slice(0, 3);
 
-export { featuredProducts, auctions, activeAuctions };
+export { products, featuredProducts, auctions, activeAuctions };

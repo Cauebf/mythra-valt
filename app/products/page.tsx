@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import { Filter } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import ProductCard from "@/components/ProductCard"
+import { products } from "@/lib/placeholder-data"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -28,82 +29,6 @@ export default function ProductsPage() {
   })
 
   const [sortBy, setSortBy] = useState("relevance")
-
-  // Dados simulados de produtos
-  const products = [
-    {
-      id: "1",
-      name: "Relógio de Bolso Vintage",
-      price: 1250,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Relógios",
-      era: "Século XIX",
-      condition: "Bom",
-    },
-    {
-      id: "2",
-      name: "Gramofone Restaurado 1920",
-      price: 3800,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Música",
-      era: "Século XX",
-      condition: "Excelente",
-    },
-    {
-      id: "3",
-      name: "Máquina de Escrever Remington",
-      price: 950,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Escritório",
-      era: "Século XX",
-      condition: "Restaurado",
-    },
-    {
-      id: "4",
-      name: "Moedas Romanas Antigas",
-      price: 2200,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Numismática",
-      era: "Antiguidade",
-      condition: "Regular",
-    },
-    {
-      id: "5",
-      name: "Cadeira Estilo Luís XV",
-      price: 4500,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Móveis",
-      era: "Século XVIII",
-      condition: "Bom",
-    },
-    {
-      id: "6",
-      name: "Conjunto de Porcelana Chinesa",
-      price: 3200,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Porcelana",
-      era: "Século XIX",
-      condition: "Excelente",
-    },
-    {
-      id: "7",
-      name: "Livro Raro Primeira Edição",
-      price: 1800,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Livros",
-      era: "Século XIX",
-      condition: "Bom",
-    },
-    {
-      id: "8",
-      name: "Espelho Veneziano Antigo",
-      price: 2900,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Decoração",
-      era: "Século XVIII",
-      condition: "Restaurado",
-    },
-  ]
 
   // Filtrar produtos com base nos filtros selecionados
   const filteredProducts = products.filter((product) => {
@@ -298,7 +223,7 @@ export default function ProductsPage() {
 
       <Separator />
 
-      <Button onClick={resetFilters} variant="outline" className="w-full">
+      <Button onClick={resetFilters} variant="outline" className="w-full cursor-pointer border-primary text-primary hover:text-white hover:bg-primary transition-colors">
         Limpar Filtros
       </Button>
     </div>

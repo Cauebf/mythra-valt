@@ -144,7 +144,7 @@ export default function Home() {
               Produtos em Destaque
             </h2>
             <Link
-              href="/produtos"
+              href="/products"
               className="text-sm font-medium text-primary hover:underline"
             >
               Ver todos
