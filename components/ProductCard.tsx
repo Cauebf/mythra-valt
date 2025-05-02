@@ -32,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={image || "/placeholder.svg"}
             alt={name}
             fill
-            className="object-cover transition-transformgroup-hover:scale-105"
+            className="object-cover transition-transform group-hover:scale-105"
           />
           {discount && (
             <Badge className="absolute top-2 right-2 bg-red-500">

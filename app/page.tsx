@@ -1,6 +1,7 @@
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { featuredProducts } from "@/lib/placeholder-data";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -9,9 +10,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1552248524-10d9a7e4841c?q=80&w=1920&auhref=format&fit=crop"
             alt="Coleção antiga"
+            fill
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/50"></div>
@@ -63,9 +65,10 @@ export default function Home() {
               className="group relative overflow-hidden rounded-lg antique-border"
             >
               <div className="aspect-square bg-muted">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1611486212557-88be5ff6f941?q=80&w=600&auhref=format&fit=crop"
                   alt="Móveis"
+                  fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -80,9 +83,10 @@ export default function Home() {
               className="group relative overflow-hidden rounded-lg antique-border"
             >
               <div className="aspect-square bg-muted">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?q=80&w=600&auhref=format&fit=crop"
                   alt="Arte"
+                  fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -97,9 +101,10 @@ export default function Home() {
               className="group relative overflow-hidden rounded-lg antique-border"
             >
               <div className="aspect-square bg-muted">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1599408981219-70ea455d4b0b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHZpZGVvZ2FtZSUyMHJldHJvfGVufDB8fDB8fHww"
                   alt="Videogames"
+                  fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -114,9 +119,10 @@ export default function Home() {
               className="group relative overflow-hidden rounded-lg antique-border"
             >
               <div className="aspect-square bg-muted">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1631832721838-44118cd1fad8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGpld2VscnklMjBhbnRpcXVlfGVufDB8fDB8fHww"
                   alt="Joias"
+                  fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -193,11 +199,12 @@ export default function Home() {
             <div className="relative">
               <div className="absolute -top-6 -left-6 w-48 h-48 bg-antique-burgundy/20 rounded-full"></div>
               <div className="absolute -bottom-6 -right-6 w-64 h-64 bg-antique-gold/10 rounded-full"></div>
-              <div className="relative z-10 rounded-lg overflow-hidden antique-border">
-                <img
+              <div className="relative z-10 h-100 rounded-lg overflow-hidden antique-border">
+                <Image
                   src="https://images.unsplash.com/photo-1541987736-41744aa9b7d7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGFudGlxdWV8ZW58MHwwfDB8fHww"
                   alt="Interior de loja de antiguidades"
-                  className="w-full h-100 object-cover"
+                  fill
+                  className="w-full p-[0.25rem] object-cover"
                 />
               </div>
             </div>
