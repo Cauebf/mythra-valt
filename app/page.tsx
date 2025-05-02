@@ -49,7 +49,7 @@ export default function Home() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-20 bg-[#F9F6EF]">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-serif font-medium mb-4 text-center">
             Navegue por Categoria
@@ -136,7 +136,7 @@ export default function Home() {
       </section>
 
       {/* Featured Items Section */}
-      <section className="py-20 bg-[#F9F6EF]">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-12">
             <h2 className="text-3xl md:text-4xl font-serif font-medium">
