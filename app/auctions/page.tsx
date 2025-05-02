@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AuctionCard from "@/components/AuctionCard";
+import { auctions } from "@/lib/placeholder-data";
 
 export default function AuctionsPage() {
   const [filters, setFilters] = useState({
@@ -28,70 +29,6 @@ export default function AuctionsPage() {
   });
 
   const [sortBy, setSortBy] = useState("ending-soon");
-
-  // Dados simulados de leilões
-  const auctions = [
-    {
-      id: "1",
-      name: "Pintura a Óleo Século XIX",
-      currentBid: 5600,
-      endTime: "2023-12-31T23:59:59",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 12,
-      category: "Arte",
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Cômoda Vitoriana",
-      currentBid: 4200,
-      endTime: "2023-12-28T18:30:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 8,
-      category: "Móveis",
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "Conjunto de Porcelana Chinesa",
-      currentBid: 3800,
-      endTime: "2023-12-29T20:15:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 15,
-      category: "Porcelana",
-      status: "active",
-    },
-    {
-      id: "4",
-      name: "Relógio de Parede Antigo",
-      currentBid: 1200,
-      endTime: "2023-12-25T12:00:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 5,
-      category: "Relógios",
-      status: "active",
-    },
-    {
-      id: "5",
-      name: "Moedas de Ouro Século XVIII",
-      currentBid: 8500,
-      endTime: "2023-12-30T15:45:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 20,
-      category: "Numismática",
-      status: "active",
-    },
-    {
-      id: "6",
-      name: "Livro Raro Primeira Edição",
-      currentBid: 3200,
-      endTime: "2023-12-27T10:30:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 7,
-      category: "Livros",
-      status: "active",
-    },
-  ];
 
   // Filtrar leilões com base nos filtros selecionados
   const filteredAuctions = auctions.filter((auction) => {
@@ -196,7 +133,7 @@ export default function AuctionsPage() {
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as categorias</SelectItem>
+            <SelectItem value="all" className="text-foreground">Todas as categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -211,7 +148,7 @@ export default function AuctionsPage() {
       <div>
         <h3 className="font-medium mb-4">Status</h3>
         <Select value={filters.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-full cursor-pointer">
+          <SelectTrigger className="w-full cursor-pointer text-muted-foreground">
             <SelectValue placeholder="Todos os leilões" />
           </SelectTrigger>
           <SelectContent>
@@ -253,7 +190,7 @@ export default function AuctionsPage() {
 
       <Separator />
 
-      <Button onClick={resetFilters} variant="outline" className="w-full cursor-pointer">
+      <Button onClick={resetFilters} variant="outline" className="w-full cursor-pointer border-primary text-primary hover:text-white hover:bg-primary transition-colors">
         Limpar Filtros
       </Button>
     </div>
