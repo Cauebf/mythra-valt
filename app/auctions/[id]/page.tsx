@@ -217,11 +217,11 @@ export default function AuctionPage({ params }: { params: Promise<{ id: string }
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/leiloes">Leilões</BreadcrumbLink>
+            <BreadcrumbLink href="/auctions">Leilões</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/leiloes?categoria=${auction.category}`}>{auction.category}</BreadcrumbLink>
+            <BreadcrumbLink href={`/auctions?category=${auction.category}`}>{auction.category}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

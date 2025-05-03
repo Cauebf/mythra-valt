@@ -158,11 +158,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/produtos">Produtos</BreadcrumbLink>
+            <BreadcrumbLink href="/products">products</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/produtos?categoria=${product.category}`}>{product.category}</BreadcrumbLink>
+            <BreadcrumbLink href={`/products?category=${product.category}`}>{product.category}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

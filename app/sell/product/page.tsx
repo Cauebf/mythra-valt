@@ -62,7 +62,7 @@ export default function SellProductPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/vender">Vender</BreadcrumbLink>
+            <BreadcrumbLink href="/sell">Vender</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
