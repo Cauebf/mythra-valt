@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { use, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,12 +17,13 @@ import { Separator } from "@/components/ui/separator"
 import { Heart, Share, ShoppingCart, Truck, Shield, Star } from "lucide-react"
 import ProductCard from "@/components/ProductCard"
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params); 
   const [quantity, setQuantity] = useState(1)
 
   // Dados simulados do produto
   const product = {
-    id: params.id,
+    id: id,
     name: "Relógio de Bolso Vintage Século XIX",
     price: 1250,
     description:
