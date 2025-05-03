@@ -58,7 +58,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
   return (
     <Card className="overflow-hidden group rounded-lg border antique-border">
-      <Link href={`/leiloes/${id}`} className="block overflow-hidden">
+      <Link href={`/auctions/${id}`} className="block overflow-hidden">
         <div className="relative h-[200px] overflow-hidden">
           <Image
             src={image || "/placeholder.svg"}
@@ -72,7 +72,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
         </div>
       </Link>
       <CardContent className="px-6">
-        <Link href={`/leiloes/${id}`}>
+        <Link href={`/auctions/${id}`}>
           <h3 className="font-serif text-xl mb-2 line-clamp-2 text-foreground hover:text-primary transition-colors">
             {name}
           </h3>
