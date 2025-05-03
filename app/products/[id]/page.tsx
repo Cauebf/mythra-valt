@@ -15,11 +15,45 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Heart, Share, ShoppingCart, Truck, Shield, Star } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import ProductCard from "@/components/ProductCard"
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params); 
   const [quantity, setQuantity] = useState(1)
+  const [userRating, setUserRating] = useState(0)
+  const [userComment, setUserComment] = useState("")
+
+  // Dados simulados de avaliações
+  const [reviews, setReviews] = useState([
+    {
+      id: "1",
+      author: "Carlos Mendes",
+      avatar: "/placeholder-user.jpg",
+      rating: 5,
+      comment:
+        "Peça excepcional, exatamente como descrita. A qualidade e o estado de conservação superaram minhas expectativas. O vendedor foi muito atencioso e o envio foi rápido.",
+      date: "15/12/2023",
+    },
+    {
+      id: "2",
+      author: "Ana Luiza",
+      avatar: "/placeholder-user.jpg",
+      rating: 4,
+      comment:
+        "Relógio belíssimo, com mecanismo funcionando perfeitamente. Apenas a corrente apresenta pequenos sinais de desgaste, mas nada que comprometa a beleza da peça.",
+      date: "10/12/2023",
+    },
+    {
+      id: "3",
+      author: "Roberto Almeida",
+      avatar: "/placeholder-user.jpg",
+      rating: 5,
+      comment:
+        "Como colecionador, posso afirmar que esta é uma das melhores aquisições que já fiz. Autenticidade comprovada e estado de conservação impecável.",
+      date: "05/12/2023",
+    },
+  ])
 
   // Dados simulados do produto
   const product = {
@@ -95,6 +129,26 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const [selectedImage, setSelectedImage] = useState(0)
 
+  const handleSubmitReview = () => {
+    if (userRating === 0 || !userComment.trim()) {
+      alert("Por favor, selecione uma avaliação e escreva um comentário.")
+      return
+    }
+
+    const newReview = {
+      id: `review-${Date.now()}`,
+      author: "Você",
+      avatar: "/placeholder-user.jpg",
+      rating: userRating,
+      comment: userComment,
+      date: new Date().toLocaleDateString("pt-BR"),
+    }
+
+    setReviews([newReview, ...reviews])
+    setUserRating(0)
+    setUserComment("")
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Breadcrumb className="mb-6">
@@ -157,6 +211,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <Badge variant="outline">{product.condition}</Badge>
           </div>
           <h1 className="text-2xl md:text-3xl font-serif font-bold mb-2">{product.name}</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-4 w-4 ${
+                    i < 4.7 ? "fill-amber-500 text-amber-500" : "fill-muted text-muted-foreground"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-sm text-muted-foreground">(23 avaliações)</span>
+          </div>
           <div className="flex items-center gap-1 mb-4">
             <Link href={`/vendedor/${product.seller.id}`} className="text-sm text-muted-foreground hover:text-primary">
               Vendido por {product.seller.name}
@@ -304,6 +371,131 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {relatedProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-serif font-bold mb-6">Avaliações e Comentários</h2>
+
+        {/* Resumo das avaliações */}
+        <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-8">
+          <div className="bg-muted p-6 rounded-lg text-center">
+            <div className="text-4xl font-bold mb-2">4.7</div>
+            <div className="flex justify-center mb-2">
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500 fill-opacity-50" />
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">Baseado em 23 avaliações</p>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="text-sm w-8">5 ★</div>
+                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 w-[75%]"></div>
+                </div>
+                <div className="text-sm w-8">75%</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm w-8">4 ★</div>
+                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 w-[20%]"></div>
+                </div>
+                <div className="text-sm w-8">20%</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm w-8">3 ★</div>
+                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 w-[5%]"></div>
+                </div>
+                <div className="text-sm w-8">5%</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm w-8">2 ★</div>
+                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 w-[0%]"></div>
+                </div>
+                <div className="text-sm w-8">0%</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm w-8">1 ★</div>
+                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 w-[0%]"></div>
+                </div>
+                <div className="text-sm w-8">0%</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Formulário de avaliação */}
+          <div>
+            <h3 className="text-lg font-medium mb-4">Adicionar avaliação</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="rating" className="block text-sm font-medium mb-2">
+                  Sua avaliação
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setUserRating(star)} className="text-amber-500">
+                      <Star
+                        className={`h-8 w-8 ${
+                          star <= userRating ? "fill-amber-500 text-amber-500" : "fill-muted text-muted-foreground"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label htmlFor="comment" className="block text-sm font-medium mb-2">
+                  Seu comentário
+                </label>
+                <textarea
+                  id="comment"
+                  rows={4}
+                  value={userComment}
+                  onChange={(e) => setUserComment(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Compartilhe sua experiência com este produto..."
+                ></textarea>
+              </div>
+              <Button onClick={handleSubmitReview}>Enviar avaliação</Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de comentários */}
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div key={review.id} className="border-b pb-6">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={review.avatar || "/placeholder.svg"} alt={review.author} />
+                      <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{review.author}</span>
+                  </div>
+                  <div className="flex mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < review.rating ? "fill-amber-500 text-amber-500" : "fill-muted text-muted-foreground"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-sm text-muted-foreground">{review.date}</span>
+              </div>
+              <p className="mt-2">{review.comment}</p>
+            </div>
           ))}
         </div>
       </section>
