@@ -26,7 +26,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card className="overflow-hidden group antique-border h-full flex flex-col">
-      <Link href={`/produtos/${id}`} className="block overflow-hidden">
+      <Link href={`/products/${id}`} className="block overflow-hidden">
         <div className="relative h-[200px] overflow-hidden">
           <Image
             src={image || "/placeholder.svg"}
@@ -48,7 +48,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <CardContent className="flex-grow flex flex-col justify-between">
-        <Link href={`/produtos/${id}`} className="flex flex-col flex-grow">
+        <Link href={`/products/${id}`} className="flex flex-col flex-grow">
           <h3 className="font-medium text-lg mb-2 line-clamp-2 hover:text-primary transition-colors">
             {name}
           </h3>
