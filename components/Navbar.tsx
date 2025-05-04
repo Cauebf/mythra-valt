@@ -46,7 +46,7 @@ export default function Navbar() {
                     href={item.href}
                     className={`font-serif text-lg hover:text-primary transition-colors ${
                       pathname === item.href
-                        ? "text-foreground"
+                        ? "text-primary"
                         : "text-muted-foreground"
                     }`}
                   >
@@ -71,7 +71,7 @@ export default function Navbar() {
                 href={item.href}
                 className={`font-serif text-sm hover:text-primary transition-colors ${
                   pathname === item.href
-                    ? "text-foreground"
+                    ? "text-primary"
                     : "text-muted-foreground"
                 }`}
               >
