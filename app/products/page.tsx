@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -21,8 +20,6 @@ import ProductCard from "@/components/ProductCard";
 import { products } from "@/lib/placeholder-data";
 
 export default function ProductsPage() {
-  const searchParams = useSearchParams();
-  const initialCategory = searchParams.get("categoria") || "";
 
   const [filters, setFilters] = useState<{
     category: string;
@@ -31,7 +28,7 @@ export default function ProductsPage() {
     condition: string[];
     search: string;
   }>({
-    category: initialCategory,
+    category: "",
     priceRange: [0, 10000],
     era: [],
     condition: [],
