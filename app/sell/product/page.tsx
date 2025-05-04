@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator"
 import { ImagePlus, X, Info, AlertCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import Image from "next/image"
 
 export default function SellProductPage() {
   const router = useRouter()
@@ -287,7 +288,7 @@ export default function SellProductPage() {
                     <div className="grid grid-cols-2 gap-2 mt-4">
                       {images.map((image, index) => (
                         <div key={index} className="relative group">
-                          <img
+                          <Image
                             src={image || "/placeholder.svg"}
                             alt={`Imagem ${index + 1}`}
                             className="w-full h-24 object-cover rounded-md"
