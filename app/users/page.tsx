@@ -470,7 +470,7 @@ export default function ProfilePage() {
               <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-serif font-bold">Minhas Vendas</h1>
                 <Button asChild>
-                  <Link href="/vender/produto">Anunciar Produto</Link>
+                  <Link href="/sell/product">Anunciar Produto</Link>
                 </Button>
               </div>
 
@@ -491,7 +491,7 @@ export default function ProfilePage() {
               <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-serif font-bold">Meus Leilões</h1>
                 <Button asChild>
-                  <Link href="/vender/leilao">Criar Leilão</Link>
+                  <Link href="/sell/auction">Criar Leilão</Link>
                 </Button>
               </div>
 
