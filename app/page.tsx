@@ -35,7 +35,7 @@ export default function Home() {
               size="lg"
               className="text-medium bg-primary hover:bg-primary/90 text-white text-lg font-normal py-6 px-8"
             >
-              <Link href="/shop">Explorar Loja</Link>
+              <Link href="/products">Explorar Loja</Link>
             </Button>
             <Button
               asChild
