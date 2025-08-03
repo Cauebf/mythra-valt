@@ -8,6 +8,8 @@ const products = [
     category: "Relógios",
     era: "Século XIX",
     condition: "Bom",
+    rating: 4.8,
+    reviewCount: 23,
   },
   {
     id: "2",
@@ -18,6 +20,9 @@ const products = [
     category: "Música",
     era: "Século XIX",
     condition: "Bom",
+    rating: 4,
+    reviewCount: 15,
+    discount: 10,
   },
   {
     id: "3",
@@ -28,6 +33,8 @@ const products = [
     category: "Escritório",
     era: "Século XX",
     condition: "Bom",
+    rating: 4.7,
+    reviewCount: 31,
   },
   {
     id: "4",
@@ -38,6 +45,8 @@ const products = [
     category: "Videogames",
     era: "Século XXI",
     condition: "Bom",
+    rating: 4.9,
+    reviewCount: 8,
   },
   {
     id: "5",
@@ -48,6 +57,8 @@ const products = [
     category: "Móveis",
     era: "Século XVIII",
     condition: "Bom",
+    rating: 4.9,
+    reviewCount: 8,
   },
   {
     id: "6",
@@ -58,6 +69,9 @@ const products = [
     category: "Porcelana",
     era: "Século XIX",
     condition: "Excelente",
+    rating: 4.9,
+    reviewCount: 8,
+    discount: 15,
   },
   {
     id: "7",
@@ -68,6 +82,8 @@ const products = [
     category: "Decoração",
     era: "Século XVIII",
     condition: "Restaurado",
+    rating: 4.9,
+    reviewCount: 8,
   },
   {
     id: "8",
@@ -78,6 +94,8 @@ const products = [
     category: "Arcade",
     era: "Século XX",
     condition: "Excelente",
+    rating: 4.9,
+    reviewCount: 8,
   },
 ];
 
