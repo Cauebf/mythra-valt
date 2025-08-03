@@ -133,7 +133,9 @@ export default function AuctionsPage() {
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-foreground">Todas as categorias</SelectItem>
+            <SelectItem value="all" className="text-foreground">
+              Todas as categorias
+            </SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -166,7 +168,9 @@ export default function AuctionsPage() {
         <h3 className="font-medium mb-4">Faixa de Preço</h3>
         <div className="grid gap-4">
           <div>
-            <Label htmlFor="min-price" className="mb-2">Preço mínimo</Label>
+            <Label htmlFor="min-price" className="mb-2">
+              Preço mínimo
+            </Label>
             <Input
               id="min-price"
               type="number"
@@ -176,7 +180,9 @@ export default function AuctionsPage() {
             />
           </div>
           <div>
-            <Label htmlFor="max-price" className="mb-2">Preço máximo</Label>
+            <Label htmlFor="max-price" className="mb-2">
+              Preço máximo
+            </Label>
             <Input
               id="max-price"
               type="number"
@@ -190,7 +196,11 @@ export default function AuctionsPage() {
 
       <Separator />
 
-      <Button onClick={resetFilters} variant="outline" className="w-full cursor-pointer border-primary text-primary hover:text-white hover:bg-primary transition-colors">
+      <Button
+        onClick={resetFilters}
+        variant="outline"
+        className="w-full cursor-pointer border-primary text-primary hover:text-white hover:bg-primary transition-colors"
+      >
         Limpar Filtros
       </Button>
     </div>
@@ -221,9 +231,7 @@ export default function AuctionsPage() {
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-              <h1 className="text-2xl font-serif font-bold mb-1">
-                Leilões
-              </h1>
+              <h1 className="text-2xl font-serif font-bold mb-1">Leilões</h1>
               <p className="text-muted-foreground">
                 {filteredAuctions.length} leilões encontrados
               </p>
@@ -262,7 +270,7 @@ export default function AuctionsPage() {
               <Button onClick={resetFilters}>Limpar Filtros</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
               {sortedAuctions.map((auction) => (
                 <AuctionCard key={auction.id} auction={auction} />
               ))}

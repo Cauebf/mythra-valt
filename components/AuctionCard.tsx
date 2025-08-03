@@ -1,106 +1,97 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import Image from "next/image";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Clock, Gavel } from "lucide-react";
-import { useEffect, useState } from "react";
+import Link from "next/link"
+import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
+import { Clock, Users } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface AuctionCardProps {
   auction: {
-    id: string;
-    name: string;
-    currentBid: number;
-    endTime: string;
-    image: string;
-    bids: number;
-  };
+    id: string
+    name: string
+    currentBid: number
+    endTime: string
+    image: string
+    bids: number
+  }
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
-  const { id, name, currentBid, endTime, image, bids } = auction;
-  const [timeLeft, setTimeLeft] = useState("");
+  const { id, name, currentBid, endTime, image, bids } = auction
+  const [timeLeft, setTimeLeft] = useState("")
+  const [isEnding, setIsEnding] = useState(false)
 
   const formattedBid = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(currentBid);
+  }).format(currentBid)
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const difference = new Date(endTime).getTime() - new Date().getTime();
+      const difference = new Date(endTime).getTime() - new Date().getTime()
 
       if (difference <= 0) {
-        setTimeLeft("Encerrado");
-        return;
+        setTimeLeft("Encerrado")
+        return
       }
 
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+
+      // Check if auction is ending soon (less than 2 hours)
+      setIsEnding(difference < 2 * 60 * 60 * 1000)
 
       if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h`);
+        setTimeLeft(`${days}d ${hours}h`)
+      } else if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}m`)
       } else {
-        setTimeLeft(`${hours}h ${minutes}m`);
+        setTimeLeft(`${minutes}m`)
       }
-    };
+    }
 
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 60000);
+    calculateTimeLeft()
+    const timer = setInterval(calculateTimeLeft, 60000)
 
-    return () => clearInterval(timer);
-  }, [endTime]);
+    return () => clearInterval(timer)
+  }, [endTime])
 
   return (
-    <Card className="overflow-hidden group rounded-lg border antique-border">
-      <Link href={`/auctions/${id}`} className="block overflow-hidden">
-        <div className="relative h-[200px] overflow-hidden">
-          <Image
-            src={image || "/placeholder.svg"}
-            alt={name}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-          <Badge className="absolute top-2 right-2 bg-[#D4AF37] text-white shadow-md">
-            Leilão
-          </Badge>
+    <div className="group">
+      <Link href={`/auctions/${id}`} className="block">
+        <div className="relative aspect-square overflow-hidden bg-gray-50 mb-2">
+          <Image src={image || "/placeholder.svg"} alt={name} fill className="object-cover" />
+          {isEnding && (
+            <div className="absolute top-2 right-2">
+              <Badge className="bg-red-600 hover:bg-red-600 text-white text-xs px-2 py-1 font-normal">Encerrando</Badge>
+            </div>
+          )}
         </div>
-      </Link>
-      <CardContent className="px-6">
-        <Link href={`/auctions/${id}`}>
-          <h3 className="font-serif text-xl mb-2 line-clamp-2 text-foreground hover:text-primary transition-colors">
-            {name}
-          </h3>
-        </Link>
-        <div className="flex justify-between items-center mb-2">
+
+        <div className="space-y-1">
+          <h3 className="text-sm text-gray-900 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{name}</h3>
+
+          {/* Current Bid */}
           <div>
-            <p className="text-sm text-muted-foreground">Lance atual</p>
-            <p className="font-semibold text-lg text-primary">{formattedBid}</p>
+            <p className="text-xs text-gray-600">Lance atual</p>
+            <p className="text-lg font-semibold text-green-700">{formattedBid}</p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Termina em</p>
-            <div className="flex items-center text-amber-600 font-medium">
-              <Clock className="h-4 w-4 mr-1" />
-              {timeLeft}
+
+          {/* Time and Bids Info */}
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span className={isEnding ? "text-red-600 font-medium" : ""}>{timeLeft}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              <span>{bids} lances</span>
             </div>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">{bids} lances</p>
-      </CardContent>
-      <CardFooter className="p-5 pt-0">
-        <Button
-          className="w-full bg-[#D4AF37] text-white hover:bg-[#c29e2f] cursor-pointer"
-          size="sm"
-        >
-          <Gavel className="mr-2 h-4 w-4" />
-          Dar Lance
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+      </Link>
+    </div>
+  )
 }
