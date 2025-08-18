@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-xl font-serif text-[#D4AF37] mb-4">
-              Cassio Ruins
+              Mythra Valt
             </h3>
             <p className="text-sm text-[#F5F1E6]/80 mb-4">
               Descubra tesouros atemporais e raras antiguidades de todo o mundo.
@@ -92,7 +92,7 @@ export default function Footer() {
               <li className="text-[#F5F1E6]/80">123 Street</li>
               <li className="text-[#F5F1E6]/80">Cidade Feliz, VC 10001</li>
               <li className="text-[#F5F1E6]/80">+1 (123) 456-7890</li>
-              <li className="text-[#F5F1E6]/80">contact@cassio.com</li>
+              <li className="text-[#F5F1E6]/80">contact@mythravalt.com</li>
             </ul>
             <div className="flex space-x-4 mt-4">
               <a
@@ -122,7 +122,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-[#F5F1E6]/10 text-center text-sm text-[#F5F1E6]/60">
           <p>
-            &copy; {new Date().getFullYear()} Cassio Ruins. Todos os direitos
+            &copy; {new Date().getFullYear()} Mythra Valt. Todos os direitos
             reservados.
           </p>
         </div>

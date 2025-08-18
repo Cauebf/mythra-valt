@@ -12,7 +12,7 @@ export default function CTA() {
               Trazendo História para o Seu Lar
             </h2>
             <p className="mb-4">
-              Na Cassio Ruins, somos apaixonados por preservar a história e
+              Na Mythra Valt, somos apaixonados por preservar a história e
               conectar colecionadores com antiguidades autênticas e
               cuidadosamente selecionadas.
             </p>

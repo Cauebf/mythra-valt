@@ -61,7 +61,7 @@ export default function Navbar() {
             href="/"
             className="font-serif text-3xl font-bold text-primary mr-8"
           >
-            Cassio
+            Mythra
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6">
