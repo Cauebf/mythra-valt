@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum ProductCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  RESTORED
+}
+
+enum AuthenticityStatus {
+  VERIFIED
+  GUARANTEED
+  UNKNOWN
+  DISPUTED
+}
+
+// Models
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  isAdmin   Boolean    @default(false)
+  avatar    String?
+  address   Address?
+  products  Product[]  @relation("UserProducts")
+  auctions  Auction[]  @relation("UserAuctions")
+  cart      Cart?
+  orders    Order[]
+  favorites Favorite[]
+  reviews   Review[]
+  comments  Comment[]
+  bids      Bid[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Address {
+  id      String @id @default(uuid())
+  street  String
+  city    String
+  state   String
+  country String
+  userId  String @unique
+  user    User   @relation(fields: [userId], references: [id])
+
+  @@map("addresses")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+  auctions Auction[]
+
+  @@map("categories")
+}
+
+model Product {
+  id             String             @id @default(uuid())
+  title          String
+  description    String
+  price          Float
+  images         String[] // Array of image URLs
+  condition      ProductCondition
+  weight         Float? // For shipping calculations
+  dimensions     String? // "LxWxH in cm"
+  era            String? // e.g., "Século XIX"
+  origin         String? // Country/region of origin
+  material       String? // Primary material
+  authenticity   AuthenticityStatus @default(UNKNOWN)
+  provenance     String? // History of ownership
+  certificateUrl String? // URL to authenticity certificate
+
+  ownerId    String
+  owner      User        @relation("UserProducts", fields: [ownerId], references: [id])
+  categoryId String
+  category   Category    @relation(fields: [categoryId], references: [id])
+  reviews    Review[]
+  comments   Comment[]
+  favorites  Favorite[]
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  CartItem   CartItem[]
+
+  @@map("products")
+}
+
+model Auction {
+  id             String             @id @default(cuid())
+  title          String
+  description    String
+  images         String[] // Array of image URLs
+  era            String?
+  origin         String?
+  material       String?
+  authenticity   AuthenticityStatus @default(UNKNOWN)
+  provenance     String?
+  certificateUrl String?
+  dimensions     String?
+  startingBid    Decimal            @db.Decimal(10, 2)
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  ownerId    String
+  owner      User        @relation("UserAuctions", fields: [ownerId], references: [id])
+  categoryId String
+  category   Category    @relation(fields: [categoryId], references: [id])
+  bids       Bid[]
+  comments   Comment[]
+  orderItems OrderItem[]
+
+  @@map("auctions")
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  amount    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  auctionId String
+  userId    String
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder    User    @relation(fields: [userId], references: [id])
+
+  @@map("bids")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String     @unique
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartId    String
+  productId String
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String
+  totalAmount     Float
+  stripeSessionId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String?
+  auctionId String?
+  price     Float // Unit price at time of purchase
+  quantity  Int     @default(1)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+  auction Auction? @relation(fields: [auctionId], references: [id])
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String @id @default(uuid())
+  rating    Int    @default(5) // 1 to 5
+  content   String
+  userId    String
+  productId String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId]) // One review per product per user
+  @@map("reviews")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
+
+model Comment {
+  id      String @id @default(uuid())
+  content String
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+
+  productId String? // nullable if it's a comment on an auction
+  auctionId String? // nullable if it's a comment on a product
+  product   Product? @relation(fields: [productId], references: [id])
+  auction   Auction? @relation(fields: [auctionId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("comments")
+}
