@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "backend/server.ts",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "tsx watch backend/server.ts"
   },
