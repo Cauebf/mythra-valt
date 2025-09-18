@@ -37,7 +37,6 @@ model User {
   email     String     @unique
   password  String
   isAdmin   Boolean    @default(false)
-  avatar    String?
   address   Address?
   products  Product[]  @relation("UserProducts")
   auctions  Auction[]  @relation("UserAuctions")
@@ -75,23 +74,24 @@ model Category {
 }
 
 model Product {
-  id             String             @id @default(uuid())
-  title          String
-  description    String
-  price          Float
-  images         String[] // Array of image URLs
-  condition      ProductCondition
-  weight         Float? // For shipping calculations
-  dimensions     String? // "LxWxH in cm"
-  era            String? // e.g., "Século XIX"
-  origin         String? // Country/region of origin
-  material       String? // Primary material
-  authenticity   AuthenticityStatus @default(UNKNOWN)
-  provenance     String? // History of ownership
-  certificateUrl String? // URL to authenticity certificate
+  id           String             @id @default(uuid())
+  title        String
+  description  String
+  price        Float
+  images       String[] // Array of image URLs
+  isFeatured   Boolean            @default(false)
+  quantity     Int                @default(1)
+  condition    ProductCondition
+  weight       Float? // For shipping calculations
+  dimensions   String? // "LxWxH in cm"
+  era          String? // e.g., "Século XIX"
+  origin       String? // Country/region of origin
+  material     String? // Primary material
+  authenticity AuthenticityStatus @default(UNKNOWN)
+  provenance   String? // History of ownership
 
   ownerId    String
-  owner      User        @relation("UserProducts", fields: [ownerId], references: [id])
+  owner      User        @relation("UserProducts", fields: [ownerId], references: [id], onDelete: Cascade)
   categoryId String
   category   Category    @relation(fields: [categoryId], references: [id])
   reviews    Review[]
@@ -124,7 +124,7 @@ model Auction {
   updatedAt      DateTime           @updatedAt
 
   ownerId    String
-  owner      User        @relation("UserAuctions", fields: [ownerId], references: [id])
+  owner      User        @relation("UserAuctions", fields: [ownerId], references: [id], onDelete: Cascade)
   categoryId String
   category   Category    @relation(fields: [categoryId], references: [id])
   bids       Bid[]
@@ -142,7 +142,7 @@ model Bid {
   auctionId String
   userId    String
   auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  bidder    User    @relation(fields: [userId], references: [id])
+  bidder    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bids")
 }
@@ -211,7 +211,7 @@ model Review {
   productId String
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  author  User    @relation(fields: [userId], references: [id])
+  author  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 

@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+
+import authRoutes from "./routes/auth.route.js";
+import productRoutes from "./routes/product.route.js";
 
 dotenv.config();
 
@@ -9,15 +13,14 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// routes
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello from the API!" });
-});
+const start = async () => {
+  app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
+};
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+start();
