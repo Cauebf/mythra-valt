@@ -54,7 +54,13 @@ export const signup = async (req: Request, res: Response) => {
     const userExists = await prisma.user.findUnique({ where: { email } });
 
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Usuário ja cadastrado" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Senha deve ter pelo menos 6 caracteres" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -108,7 +114,7 @@ export const login = async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Senha ou email incorretos" });
     }
 
     const { accessToken, refreshToken } = await generateTokens(user.id);
@@ -120,6 +126,7 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        isAdmin: user.isAdmin,
       },
       message: "Logged in successfully",
     });
@@ -136,7 +143,7 @@ export const logout = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      return res.status(400).json({ message: "Refresh token not found" });
+      return res.status(400).json({ message: "Refresh token não encontrado" });
     }
 
     const decoded = jwt.verify(
@@ -162,7 +169,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      return res.status(400).json({ message: "Refresh token not found" });
+      return res.status(400).json({ message: "Refresh token não encontrado" });
     }
 
     const decoded = jwt.verify(
@@ -172,7 +179,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
     if (storedToken !== refreshToken) {
-      return res.status(403).json({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "Refresh token inválido" });
     }
 
     const user = await prisma.user.findUnique({
@@ -180,7 +187,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
     const newAccessToken = jwt.sign(

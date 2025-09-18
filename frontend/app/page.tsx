@@ -5,10 +5,6 @@ import FeaturedAuctionsSection from "@/components/sections/FeaturedAuctions";
 import CTA from "@/components/sections/CTA";
 
 export default async function Home() {
-  const res = await fetch("http://localhost:5000/api");
-  const data = await res.json();
-  console.log("res: ", data);
-
   return (
     <>
       <HeroSection />
