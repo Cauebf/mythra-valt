@@ -45,8 +45,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={image || "/placeholder.svg"}
             alt={name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
           />
+
           {category && (
             <div className="absolute top-2 right-2">
               <Badge

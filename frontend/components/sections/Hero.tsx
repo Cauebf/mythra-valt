@@ -36,7 +36,7 @@ export default function HeroSection() {
             asChild
             size="lg"
             variant="outline"
-            className="text-lg font-normal py-6 px-8 bg-transparent border-white text-white hover:bg-white/10"
+            className="text-lg font-normal py-6 px-8 bg-transparent border-white text-white hover:bg-white/10 hover:text-white"
           >
             <Link href="/auctions">Ver Leilões</Link>
           </Button>

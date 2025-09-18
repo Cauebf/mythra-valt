@@ -68,7 +68,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
             src={image || "/placeholder.svg"}
             alt={name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
           />
           {isEnding && (
             <div className="absolute top-2 right-2">

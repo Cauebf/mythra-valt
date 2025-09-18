@@ -46,13 +46,7 @@ export default function SellPage() {
                   <span className="bg-primary/20 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
                     ✓
                   </span>
-                  Controle total sobre a disponibilidade
-                </li>
-                <li className="flex items-center">
-                  <span className="bg-primary/20 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                    ✓
-                  </span>
-                  Taxa de serviço de apenas 5%
+                  Alcance compradores apaixonados por antiguidades
                 </li>
                 <li className="flex items-center">
                   <span className="bg-primary/20 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
@@ -103,19 +97,12 @@ export default function SellPage() {
                   </span>
                   Chat direto com potenciais compradores
                 </li>
-                <li className="flex items-center">
-                  <span className="bg-amber-500/20 text-amber-500 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                    ✓
-                  </span>
-                  Taxa de serviço de 7.5% sobre o lance vencedor
-                </li>
               </ul>
             </CardContent>
             <CardFooter>
               <Button
                 asChild
-                variant="outline"
-                className="w-full group-hover:border-amber-500 group-hover:text-amber-500"
+                className="w-full bg-amber-400 text-white hover:bg-amber-400/90"
               >
                 <Link href="/sell/auction">
                   Criar Leilão
