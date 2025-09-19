@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.route.js";
 import productRoutes from "./routes/product.route.js";
 import auctionRoutes from "./routes/auction.route.js";
 import categoryRoutes from "./routes/category.route.js";
+import reviewsRoutes from "./routes/review.route.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auctions", auctionRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/reviews", reviewsRoutes);
 
 const start = async () => {
   app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
