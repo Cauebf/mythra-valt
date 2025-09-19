@@ -333,41 +333,6 @@ export default function SellProductPage() {
                       />
                     </div>
                   </div>
-
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label htmlFor="shipping">Opções de envio *</Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Você pode oferecer frete grátis para aumentar as
-                              chances de venda, ou cobrar pelo envio.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <Select required>
-                      <SelectTrigger
-                        id="shipping"
-                        className="w-full cursor-pointer"
-                      >
-                        <SelectValue placeholder="Selecione a opção de envio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="free">Frete grátis</SelectItem>
-                        <SelectItem value="fixed">Frete fixo</SelectItem>
-                        <SelectItem value="calculated">
-                          Frete calculado pelo comprador
-                        </SelectItem>
-                        <SelectItem value="pickup">Apenas retirada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -421,21 +386,6 @@ export default function SellProductPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl">Resumo</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Taxa de serviço (5%)
-                      </span>
-                      <span>Calculado após a venda</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-medium">
-                      <span>Você receberá</span>
-                      <span>95% do valor da venda</span>
-                    </div>
-                  </div>
-                </CardContent>
                 <CardFooter className="flex flex-col gap-4">
                   <Button
                     type="submit"
