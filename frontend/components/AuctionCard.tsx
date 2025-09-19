@@ -5,71 +5,115 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Auction } from "@types";
+import type { Auction } from "@types";
 
-export default function AuctionCard({ auction }: { auction: Auction }) {
-  // const { id, name, currentBid, endTime, image, bids } = auction;
-  const id = 1;
-  const name = "Auction 1";
-  const currentBid = 100;
-  const endTime = "2023-12-31T23:59:59";
-  const image =
-    "https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cGludHVyYSUyMGElMjBvbGVvfGVufDB8fDB8fHww";
-  const bids = 12;
+export default function AuctionCard({ auction }: { auction?: Auction | null }) {
+  // safe fallbacks
+  const id = auction?.id ?? "0";
+  const title = auction?.title ?? "Leilão sem título";
+  const images = auction?.images ?? [];
+  const image = images.length > 0 ? images[0] : "/placeholder.svg";
+  const category =
+    (auction as any)?.category?.name ?? auction?.categoryId ?? "";
+  const bidsArr = auction?.bids ?? [];
+  const bidsCount = bidsArr?.length ?? 0;
 
-  const [timeLeft, setTimeLeft] = useState("");
-  const [isEnding, setIsEnding] = useState(false);
+  // determine current (highest) bid or startingBid
+  const highestBidRaw =
+    bidsArr && bidsArr.length > 0 ? bidsArr[0].amount : null;
+  const startingBidRaw = (auction?.startingBid as any) ?? 0;
+  const numericHighest = highestBidRaw
+    ? typeof highestBidRaw === "string"
+      ? parseFloat(highestBidRaw)
+      : (highestBidRaw as number)
+    : null;
+  const numericStarting =
+    typeof startingBidRaw === "string"
+      ? parseFloat(startingBidRaw)
+      : (startingBidRaw as number);
+
+  const currentBid = numericHighest ?? numericStarting ?? 0;
 
   const formattedBid = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(currentBid);
+  }).format(Number(currentBid || 0));
+
+  // time left state
+  const endTimeRaw = auction?.endTime ?? null;
+  const endDate = endTimeRaw ? new Date(endTimeRaw) : null;
+
+  const [timeLeft, setTimeLeft] = useState<string>(() => {
+    if (!endDate) return "—";
+    const diff = endDate.getTime() - Date.now();
+    if (diff <= 0) return "Encerrado";
+    return formatDiff(diff);
+  });
+  const [isEnding, setIsEnding] = useState<boolean>(() => {
+    if (!endDate) return false;
+    const diff = endDate.getTime() - Date.now();
+    return diff > 0 && diff < 2 * 60 * 60 * 1000;
+  });
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const difference = new Date(endTime).getTime() - new Date().getTime();
-
-      if (difference <= 0) {
+    if (!endDate) return;
+    const tick = () => {
+      const diff = endDate.getTime() - Date.now();
+      if (diff <= 0) {
         setTimeLeft("Encerrado");
+        setIsEnding(false);
         return;
       }
-
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-
-      // Check if auction is ending soon (less than 2 hours)
-      setIsEnding(difference < 2 * 60 * 60 * 1000);
-
-      if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h`);
-      } else if (hours > 0) {
-        setTimeLeft(`${hours}h ${minutes}m`);
-      } else {
-        setTimeLeft(`${minutes}m`);
-      }
+      setTimeLeft(formatDiff(diff));
+      setIsEnding(diff < 2 * 60 * 60 * 1000);
     };
 
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 60000);
+    // update every 1s for a smooth countdown (seconds shown when <1h)
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [endTimeRaw]);
 
-    return () => clearInterval(timer);
-  }, [endTime]);
+  // helper: format milliseconds difference
+  function formatDiff(ms: number) {
+    if (ms <= 0) return "Encerrado";
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / (60 * 60 * 24));
+    const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+    return `${seconds}s`;
+  }
 
   return (
     <div className="group">
-      <Link href={`/auctions/${id}`} className="block">
-        <div className="relative aspect-square overflow-hidden bg-gray-50 mb-2">
+      <Link href={`/auctions/${id}`} className="block h-full">
+        <div className="relative aspect-square overflow-hidden bg-gray-50 mb-2 rounded-md border">
           <Image
             src={image || "/placeholder.svg"}
-            alt={name}
+            alt={title}
             fill
+            sizes="(max-width: 640px) 100vw, 300px"
             className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
           />
-          {isEnding && (
+
+          {category && (
             <div className="absolute top-2 right-2">
+              <Badge
+                variant="secondary"
+                className="text-xs bg-white/90 text-gray-700 hover:bg-white/90"
+              >
+                {category}
+              </Badge>
+            </div>
+          )}
+
+          {isEnding && (
+            <div className="absolute top-2 left-2">
               <Badge className="bg-red-600 hover:bg-red-600 text-white text-xs px-2 py-1 font-normal">
                 Encerrando
               </Badge>
@@ -78,14 +122,17 @@ export default function AuctionCard({ auction }: { auction: Auction }) {
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm text-gray-900 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">
-            {name}
+          <h3
+            className="text-sm text-gray-900 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap"
+            title={title}
+          >
+            {title}
           </h3>
 
           {/* Current Bid */}
           <div>
-            <p className="text-xs text-gray-600">Lance atual</p>
-            <p className="text-lg font-semibold text-green-700">
+            <p className="text-xs text-muted-foreground">Lance atual</p>
+            <p className="text-lg font-semibold text-emerald-700">
               {formattedBid}
             </p>
           </div>
@@ -100,7 +147,9 @@ export default function AuctionCard({ auction }: { auction: Auction }) {
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              <span>{bids} lances</span>
+              <span>
+                {bidsCount} {bidsCount === 1 ? "lance" : "lances"}
+              </span>
             </div>
           </div>
         </div>
