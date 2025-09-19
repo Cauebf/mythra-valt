@@ -28,7 +28,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auctions", auctionRoutes);
-app.use("/api/category", categoryRoutes);
+app.use("/api/categories", categoryRoutes);
 
 const start = async () => {
   app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));

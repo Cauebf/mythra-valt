@@ -1,4 +1,4 @@
-export type Category = {
+export type CategoryCardType = {
   href: string;
   label: string;
   img: string;
@@ -80,4 +80,22 @@ export type ProductStore = {
   deleteProduct: (productId: string) => Promise<void>;
   toggleFeaturedProduct: (productId: string) => Promise<void>;
   getProductById: (id: string) => Promise<Product | null>;
+};
+
+export type Category = {
+  id: string;
+  name: string;
+};
+
+export type CategoryStore = {
+  categories: Category[];
+  loading: boolean;
+
+  setCategories: (cats: Category[]) => void;
+
+  fetchAllCategories: () => Promise<void>;
+  createCategory: (name: string) => Promise<void>;
+  updateCategory: (id: string, name: string) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  getCategoryById: (id: string) => Promise<Category | null>;
 };

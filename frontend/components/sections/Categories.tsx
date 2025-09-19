@@ -1,7 +1,7 @@
-import { Category } from "@types";
+import { CategoryCardType } from "@types";
 import CategoryCard from "../CategoryCard";
 
-const categories: Category[] = [
+const categories: CategoryCardType[] = [
   {
     href: "/products?category=furniture",
     label: "Móveis",

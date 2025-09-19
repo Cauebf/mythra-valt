@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -35,17 +35,8 @@ import {
 import { ImagePlus, X } from "lucide-react";
 
 import { useProductStore } from "@/stores/useProductStore";
-import { Product } from "@types";
-
-const CATEGORIES = [
-  { value: "d0d13b6d-cce9-4122-ae16-262f073f2f80", label: "Móveis" },
-  { value: "b6b1d81e-27da-4708-a513-bcb382073a2a", label: "Arte" },
-  { value: "63b61261-a42a-45fb-8f9d-28e4a32ff887", label: "Joias" },
-  { value: "2ffe0808-9dea-46a0-9046-6e4ab4c9415c", label: "Livros" },
-  { value: "84ca9f47-1aa7-4377-8ed6-e17d9f981e01", label: "Relógios" },
-  { value: "e5b0ad81-e068-4869-82ff-2d00402df9aa", label: "Porcelana" },
-  { value: "4d8fee0f-b6a6-4418-aefc-468a3572f466", label: "Outro" },
-];
+import { useCategoryStore } from "@/stores/useCategoryStore";
+import type { Product } from "@types";
 
 const ERAS = [
   { value: "antiquity", label: "Antiguidade" },
@@ -73,6 +64,11 @@ const AUTHENTICITY = [
 export default function SellProductPage() {
   const router = useRouter();
   const { createProduct, loading: storeLoading } = useProductStore();
+  const {
+    categories,
+    fetchAllCategories,
+    loading: categoriesLoading,
+  } = useCategoryStore();
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<string | undefined>(undefined);
@@ -88,8 +84,11 @@ export default function SellProductPage() {
   const [history, setHistory] = useState("");
   const [price, setPrice] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
-
   const [images, setImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
 
   // Convert file to base64 string
   const fileToBase64 = (file: File): Promise<string> =>
@@ -143,7 +142,6 @@ export default function SellProductPage() {
     type Condition = "EXCELLENT" | "GOOD" | "FAIR" | "RESTORED" | "DAMAGED";
     type Authenticity = "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED";
 
-    // Build payload matching CreateProductDto
     const payload: Product = {
       title,
       description,
@@ -152,7 +150,6 @@ export default function SellProductPage() {
       images, // base64 strings
       condition: condition as Condition,
       categoryId: category,
-      weight: undefined,
       dimensions,
       era,
       origin,
@@ -232,14 +229,30 @@ export default function SellProductPage() {
                           id="category"
                           className="w-full cursor-pointer"
                         >
-                          <SelectValue placeholder="Selecione uma categoria" />
+                          <SelectValue
+                            placeholder={
+                              categoriesLoading
+                                ? "Carregando categorias..."
+                                : "Selecione uma categoria"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {CATEGORIES.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
+                          {categories.length > 0 ? (
+                            categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))
+                          ) : categoriesLoading ? (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Carregando...
+                            </div>
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Nenhuma categoria
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -514,8 +527,7 @@ export default function SellProductPage() {
                         Categoria:
                       </span>
                       <br />
-                      {CATEGORIES.find((c) => c.value === category)?.label ||
-                        "—"}
+                      {categories.find((c) => c.id === category)?.name || "—"}
                     </div>
                     <div>
                       <span className="font-medium text-foreground">

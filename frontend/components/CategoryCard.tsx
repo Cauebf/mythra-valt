@@ -1,8 +1,12 @@
-import { Category } from "@types";
+import { CategoryCardType } from "@types";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function CategoryCard({ category }: { category: Category }) {
+export default function CategoryCard({
+  category,
+}: {
+  category: CategoryCardType;
+}) {
   return (
     <Link
       href={category.href}

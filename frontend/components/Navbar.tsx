@@ -19,12 +19,16 @@ import { useUserStore } from "@stores/useUserStore";
 export default function Navbar() {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { user, logout, checkAuth } = useUserStore();
+  const { user, logout, checkAuth, refreshToken } = useUserStore();
   const isAdmin = user ? user.isAdmin : false;
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  const handleClick = () => {
+    refreshToken();
+  };
 
   const navItems = [
     { name: "Início", href: "/" },
@@ -99,12 +103,14 @@ export default function Navbar() {
                       <Link
                         href="/auth/login"
                         className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                        onClick={handleClick}
                       >
                         Entrar
                       </Link>
                       <Link
                         href="/auth/signup"
                         className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                        onClick={handleClick}
                       >
                         Cadastrar
                       </Link>
@@ -240,10 +246,14 @@ export default function Navbar() {
           ) : (
             <div className="hidden lg:flex items-center gap-2">
               <Button variant="ghost" asChild>
-                <Link href="/auth/login">Entrar</Link>
+                <Link href="/auth/login" onClick={handleClick}>
+                  Entrar
+                </Link>
               </Button>
               <Button asChild>
-                <Link href="/auth/signup">Cadastrar</Link>
+                <Link href="/auth/signup" onClick={handleClick}>
+                  Cadastrar
+                </Link>
               </Button>
             </div>
           )}
