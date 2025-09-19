@@ -51,10 +51,9 @@ export default function ProductsPage() {
     let max = 0;
 
     for (const p of products) {
-      // if (p.category && (p as any).category?.name) {
-      //   cats.add((p as any).category.name);
-      // } else
-      if (typeof p.categoryId === "string") {
+      if (p.category && (p as any).category?.name) {
+        cats.add((p as any).category.name);
+      } else if (typeof p.categoryId === "string") {
         // fallback: show categoryId (not ideal)
         cats.add(p.categoryId ?? "Outros");
       }
@@ -180,7 +179,7 @@ export default function ProductsPage() {
             <h3 className="text-lg font-medium">Filtros</h3>
             <button
               aria-label="Limpar"
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={resetFilters}
             >
               Limpar
@@ -191,13 +190,15 @@ export default function ProductsPage() {
             <div>
               <Label className="mb-2">Categoria</Label>
               <Select value={category} onValueChange={(v) => setCategory(v)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  <SelectItem value="all" className="cursor-pointer">
+                    Todas as categorias
+                  </SelectItem>
                   {facets.categories.map((c) => (
-                    <SelectItem key={c} value={c}>
+                    <SelectItem key={c} value={c} className="cursor-pointer">
                       {c}
                     </SelectItem>
                   ))}
@@ -216,6 +217,7 @@ export default function ProductsPage() {
                   step={10}
                   value={priceRange}
                   onValueChange={(v) => setPriceRange(v)}
+                  className="cursor-pointer"
                 />
                 <div className="flex justify-between text-sm">
                   <span>
@@ -250,8 +252,11 @@ export default function ProductsPage() {
                         id={`era-${e}`}
                         checked={eraFilters.includes(e)}
                         onCheckedChange={() => toggleEra(e)}
+                        className="cursor-pointer"
                       />
-                      <Label htmlFor={`era-${e}`}>{e}</Label>
+                      <Label htmlFor={`era-${e}`} className="cursor-pointer">
+                        {e}
+                      </Label>
                     </div>
                   ))
                 )}
@@ -274,8 +279,11 @@ export default function ProductsPage() {
                         id={`cond-${c}`}
                         checked={conditionFilters.includes(c)}
                         onCheckedChange={() => toggleCondition(c)}
+                        className="cursor-pointer"
                       />
-                      <Label htmlFor={`cond-${c}`}>{c}</Label>
+                      <Label htmlFor={`cond-${c}`} className="cursor-pointer">
+                        {c}
+                      </Label>
                     </div>
                   ))
                 )}
@@ -284,7 +292,11 @@ export default function ProductsPage() {
 
             <Separator />
 
-            <Button variant="outline" className="w-full" onClick={resetFilters}>
+            <Button
+              variant="outline"
+              className="w-full cursor-pointer"
+              onClick={resetFilters}
+            >
               Limpar filtros
             </Button>
           </div>
@@ -420,15 +432,25 @@ export default function ProductsPage() {
 
               <div className="w-full sm:w-48">
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full cursor-pointer">
                     <SelectValue placeholder="Ordenar por" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="relevance">Relevância</SelectItem>
-                    <SelectItem value="price-asc">Menor Preço</SelectItem>
-                    <SelectItem value="price-desc">Maior Preço</SelectItem>
-                    <SelectItem value="name-asc">A-Z</SelectItem>
-                    <SelectItem value="name-desc">Z-A</SelectItem>
+                    <SelectItem value="relevance" className="cursor-pointer">
+                      Relevância
+                    </SelectItem>
+                    <SelectItem value="price-asc" className="cursor-pointer">
+                      Menor Preço
+                    </SelectItem>
+                    <SelectItem value="price-desc" className="cursor-pointer">
+                      Maior Preço
+                    </SelectItem>
+                    <SelectItem value="name-asc" className="cursor-pointer">
+                      A-Z
+                    </SelectItem>
+                    <SelectItem value="name-desc" className="cursor-pointer">
+                      Z-A
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

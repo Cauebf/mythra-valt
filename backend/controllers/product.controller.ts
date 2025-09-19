@@ -21,7 +21,26 @@ async function updateFeaturedProductsCache() {
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      include: {
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        reviews: true,
+        comments: true,
+        favorites: true,
+      },
+    });
     res.status(200).json({ products });
   } catch (error) {
     console.error("Error getting products:", error);

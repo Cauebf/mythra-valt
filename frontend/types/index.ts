@@ -63,6 +63,7 @@ export type Product = {
   provenance?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  category?: Category | null;
 };
 
 export type ProductStore = {
