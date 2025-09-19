@@ -5,20 +5,18 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Auction } from "@types";
 
-interface AuctionCardProps {
-  auction: {
-    id: string;
-    name: string;
-    currentBid: number;
-    endTime: string;
-    image: string;
-    bids: number;
-  };
-}
+export default function AuctionCard({ auction }: { auction: Auction }) {
+  // const { id, name, currentBid, endTime, image, bids } = auction;
+  const id = 1;
+  const name = "Auction 1";
+  const currentBid = 100;
+  const endTime = "2023-12-31T23:59:59";
+  const image =
+    "https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cGludHVyYSUyMGElMjBvbGVvfGVufDB8fDB8fHww";
+  const bids = 12;
 
-export default function AuctionCard({ auction }: AuctionCardProps) {
-  const { id, name, currentBid, endTime, image, bids } = auction;
   const [timeLeft, setTimeLeft] = useState("");
   const [isEnding, setIsEnding] = useState(false);
 
