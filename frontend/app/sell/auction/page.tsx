@@ -86,7 +86,7 @@ export default function CreateAuctionPage() {
   const [provenance, setProvenance] = useState("");
 
   // auction settings
-  const [startingBid, setStartingBid] = useState<string>("0.00");
+  const [startingBid, setStartingBid] = useState<string>("");
   const [durationDays, setDurationDays] = useState<string>("7"); // default 7 days
   const [startDate, setStartDate] = useState<string>(() => {
     const today = new Date();
@@ -449,6 +449,7 @@ export default function CreateAuctionPage() {
                         step="0.01"
                         value={startingBid}
                         onChange={(e) => setStartingBid(e.target.value)}
+                        placeholder="0,00"
                         required
                       />
                       <p className="text-xs text-muted-foreground mt-1">
