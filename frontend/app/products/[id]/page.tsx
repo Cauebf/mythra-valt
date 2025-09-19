@@ -1,8 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,146 +12,164 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Share, ShoppingCart, Truck, Shield, Star } from "lucide-react";
+import { Heart, ShoppingCart, Truck, Shield, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProductCard from "@/components/ProductCard";
+import { useProductStore } from "@/stores/useProductStore";
+import { useReviewStore } from "@/stores/useReviewStore";
+import { useCartStore } from "@/stores/useCartStore";
+import { useFavoriteStore } from "@/stores/useFavoriteStore";
+import { useCategoryStore } from "@/stores/useCategoryStore";
+import toast from "react-hot-toast";
+import type { Product } from "@types";
 
 export default function ProductPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const router = useRouter();
   const { id } = use(params);
+
+  const { getProductById, products, fetchProductsByCategory } =
+    useProductStore();
+  const { reviews, fetchReviewsByProduct, createReview } = useReviewStore();
+  const { addToCart } = useCartStore();
+  const { toggleFavorite, fetchUserFavorites, isFavoriteForProduct } =
+    useFavoriteStore();
+  const { fetchAllCategories } = useCategoryStore();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState("");
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const [related, setRelated] = useState<Product[]>([]);
+  const [favLoading, setFavLoading] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
-  // Dados simulados de avaliações
-  const [reviews, setReviews] = useState([
-    {
-      id: "1",
-      author: "Carlos Mendes",
-      avatar: "/placeholder-user.jpg",
-      rating: 5,
-      comment:
-        "Peça excepcional, exatamente como descrita. A qualidade e o estado de conservação superaram minhas expectativas. O vendedor foi muito atencioso e o envio foi rápido.",
-      date: "15/12/2023",
-    },
-    {
-      id: "2",
-      author: "Ana Luiza",
-      avatar: "/placeholder-user.jpg",
-      rating: 4,
-      comment:
-        "Relógio belíssimo, com mecanismo funcionando perfeitamente. Apenas a corrente apresenta pequenos sinais de desgaste, mas nada que comprometa a beleza da peça.",
-      date: "10/12/2023",
-    },
-    {
-      id: "3",
-      author: "Roberto Almeida",
-      avatar: "/placeholder-user.jpg",
-      rating: 5,
-      comment:
-        "Como colecionador, posso afirmar que esta é uma das melhores aquisições que já fiz. Autenticidade comprovada e estado de conservação impecável.",
-      date: "05/12/2023",
-    },
-  ]);
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        await fetchAllCategories();
+        const p = await getProductById(id);
+        setProduct(p ?? null);
 
-  // Dados simulados do produto
-  const product = {
-    id: id,
-    name: "Relógio de Bolso Vintage Século XIX",
-    price: 1250,
-    description:
-      "Relógio de bolso em ouro 18k, fabricado na Suíça em 1880. Peça rara em excelente estado de conservação, com mecanismo original funcionando perfeitamente. Inclui corrente original e estojo de couro da época.",
-    images: [
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-    ],
-    category: "Relógios",
-    era: "Século XIX",
-    condition: "Excelente",
-    dimensions: "Diâmetro: 5cm, Espessura: 1.5cm",
-    origin: "Suíça",
-    seller: {
-      id: "seller123",
-      name: "Antiquário Clássico",
-      rating: 4.8,
-      sales: 156,
-    },
-    inStock: 1,
-    specifications: [
-      { name: "Material", value: "Ouro 18k" },
-      { name: "Ano", value: "c. 1880" },
-      { name: "Estado", value: "Excelente, funcionando" },
-      { name: "Origem", value: "Suíça" },
-      { name: "Autenticidade", value: "Verificada" },
-    ],
-    history:
-      "Este relógio pertenceu a uma família aristocrática europeia por gerações. Foi adquirido em um leilão em Paris em 2010 e passou por uma cuidadosa restauração por um relojoeiro especializado em peças de época.",
+        if (p?.categoryId) {
+          await fetchProductsByCategory(p.categoryId);
+          const relatedCandidates = (products || []).filter(
+            (x) => x.id !== p.id && x.categoryId === p.categoryId
+          );
+          setRelated(relatedCandidates.slice(0, 8));
+        }
+
+        await fetchReviewsByProduct(id);
+        await fetchUserFavorites();
+      } catch (err) {
+        console.error("Error loading product page", err);
+        toast.error("Erro ao carregar o produto");
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // compute averages from reviews loaded for this product
+  const reviewCount = useMemo(() => {
+    if (reviews && reviews.length > 0) return reviews.length;
+    return product?._count?.reviews ?? 0;
+  }, [reviews, product]);
+
+  const avgRating = useMemo(() => {
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0);
+      return sum / reviews.length;
+    }
+    // fallback to product.avgRating if backend provided it
+    return product && (product as any).avgRating
+      ? Number((product as any).avgRating)
+      : 0;
+  }, [reviews, product]);
+
+  const increment = () => {
+    if (!product) return;
+    if (quantity < (product.quantity ?? 1)) setQuantity((q) => q + 1);
+  };
+  const decrement = () => {
+    if (quantity > 1) setQuantity((q) => q - 1);
   };
 
-  // Produtos relacionados simulados
-  const relatedProducts = [
-    {
-      id: "2",
-      name: "Relógio de Mesa Art Déco",
-      price: 2800,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Relógios",
-    },
-    {
-      id: "3",
-      name: "Corrente de Relógio Vitoriana",
-      price: 650,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Acessórios",
-    },
-    {
-      id: "4",
-      name: "Estojo para Relógio Antigo",
-      price: 450,
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Acessórios",
-    },
-  ];
-
-  const incrementQuantity = () => {
-    if (quantity < product.inStock) {
-      setQuantity(quantity + 1);
+  const handleAddToCart = async () => {
+    if (!product || !product.id) return;
+    setAddingToCart(true);
+    try {
+      await addToCart(product.id, quantity);
+      toast.success("Adicionado ao carrinho");
+      // router.push("/cart");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao adicionar ao carrinho");
+    } finally {
+      setAddingToCart(false);
     }
   };
 
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
+  const handleToggleFavorite = async () => {
+    if (!product || !product.id) return;
+    setFavLoading(true);
+    try {
+      await toggleFavorite(product.id);
+      toast.success("Favorito atualizado");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao atualizar favorito");
+    } finally {
+      setFavLoading(false);
     }
   };
 
-  const [selectedImage, setSelectedImage] = useState(0);
-
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
+    if (!product || !product.id) return;
     if (userRating === 0 || !userComment.trim()) {
-      alert("Por favor, selecione uma avaliação e escreva um comentário.");
+      toast.error("Selecione avaliação e escreva um comentário");
       return;
     }
-
-    const newReview = {
-      id: `review-${Date.now()}`,
-      author: "Você",
-      avatar: "/placeholder-user.jpg",
-      rating: userRating,
-      comment: userComment,
-      date: new Date().toLocaleDateString("pt-BR"),
-    };
-
-    setReviews([newReview, ...reviews]);
-    setUserRating(0);
-    setUserComment("");
+    try {
+      const r = await createReview(product.id, userRating, userComment);
+      if (r) {
+        setUserRating(0);
+        setUserComment("");
+        toast.success("Avaliação enviada");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar avaliação");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-96 bg-gray-100 rounded" />
+          <div className="h-6 bg-gray-100 rounded w-64" />
+          <div className="h-6 bg-gray-100 rounded w-40" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p>Produto não encontrado.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -162,46 +180,48 @@ export default function ProductPage({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/products">products</BreadcrumbLink>
+            <BreadcrumbLink href="/products">Produtos</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/products?category=${product.category}`}>
-              {product.category}
+            <BreadcrumbLink href={`/products?category=${product.categoryId}`}>
+              {product.category?.name ?? "Categoria"}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink>{product.name}</BreadcrumbLink>
+            <BreadcrumbLink>{product.title}</BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {/* Imagens do produto */}
+        {/* Images */}
         <div className="space-y-4">
-          <div className="relative h-[400px] md:h-[500px] rounded-lg overflow-hidden border">
+          <div className="relative h-[400px] md:h-[520px] rounded-lg overflow-hidden border">
             <Image
-              src={product.images[selectedImage] || "/placeholder.svg"}
-              alt={product.name}
+              src={product.images?.[selectedImageIdx] ?? "/placeholder.svg"}
+              alt={product.title ?? "produto"}
               fill
               className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {product.images.map((image, index) => (
+
+          <div className="flex gap-2 pb-2">
+            {(product.images || []).map((img, i) => (
               <button
-                key={index}
-                onClick={() => setSelectedImage(index)}
-                className={`relative w-20 h-20 border rounded ${
-                  selectedImage === index
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-muted hover:border-primary/50"
+                key={i}
+                onClick={() => setSelectedImageIdx(i)}
+                className={`relative w-20 h-20 rounded cursor-pointer overflow-hidden border ${
+                  selectedImageIdx === i
+                    ? "ring-2 ring-primary"
+                    : "border-2 hover:border-primary/80"
                 }`}
               >
                 <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`${product.name} - imagem ${index + 1}`}
+                  src={img}
+                  alt={`img-${i}`}
                   fill
                   className="object-cover"
                 />
@@ -210,44 +230,33 @@ export default function ProductPage({
           </div>
         </div>
 
-        {/* Informações do produto */}
+        {/* Details */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="outline">{product.era}</Badge>
-            <Badge variant="outline">{product.condition}</Badge>
+            {product.era && <Badge variant="outline">{product.era}</Badge>}
+            {product.condition && (
+              <Badge variant="outline">{product.condition}</Badge>
+            )}
           </div>
+
           <h1 className="text-2xl md:text-3xl font-serif font-bold mb-2">
-            {product.name}
+            {product.title}
           </h1>
+
           <div className="flex items-center gap-2 mb-2">
-            <div className="flex">
+            <div className="flex text-amber-500">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
                   className={`h-4 w-4 ${
-                    i < 4.7
-                      ? "fill-amber-500 text-amber-500"
-                      : "fill-muted text-muted-foreground"
+                    i < Math.round(avgRating) ? "fill-current" : "fill-muted"
                   }`}
                 />
               ))}
             </div>
             <span className="text-sm text-muted-foreground">
-              (23 avaliações)
+              ({reviewCount} avaliações)
             </span>
-          </div>
-          <div className="flex items-center gap-1 mb-4">
-            <Link
-              href={`/vendedor/${product.seller.id}`}
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              Vendido por {product.seller.name}
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <div className="flex items-center">
-              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              <span className="text-sm ml-1">{product.seller.rating}</span>
-            </div>
           </div>
 
           <div className="mb-6">
@@ -255,7 +264,7 @@ export default function ProductPage({
               {new Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
-              }).format(product.price)}
+              }).format(product.price ?? 0)}
             </p>
             <p className="text-sm text-muted-foreground">
               Em até 12x sem juros
@@ -264,9 +273,38 @@ export default function ProductPage({
 
           <div className="mb-6">
             <p className="text-sm mb-4">{product.description}</p>
+
+            {/* Show important details explicitly (origem, dimensões, material, autenticidade) */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm font-medium">Origem</p>
+                <p className="text-sm text-muted-foreground">
+                  {product.origin ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Dimensões</p>
+                <p className="text-sm text-muted-foreground">
+                  {product.dimensions ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Material</p>
+                <p className="text-sm text-muted-foreground">
+                  {product.material ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Autenticidade</p>
+                <p className="text-sm text-muted-foreground">
+                  {product.authenticity ?? "UNKNOWN"}
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              {product.specifications.map((spec, index) => (
-                <div key={index}>
+              {(product.specifications ?? []).map((spec, idx) => (
+                <div key={idx}>
                   <p className="text-sm font-medium">{spec.name}</p>
                   <p className="text-sm text-muted-foreground">{spec.value}</p>
                 </div>
@@ -283,8 +321,9 @@ export default function ProductPage({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={decrementQuantity}
+                  onClick={decrement}
                   disabled={quantity <= 1}
+                  className="cursor-pointer"
                 >
                   -
                 </Button>
@@ -292,29 +331,44 @@ export default function ProductPage({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={incrementQuantity}
-                  disabled={quantity >= product.inStock}
+                  onClick={increment}
+                  disabled={quantity >= (product.quantity ?? 1)}
+                  className="cursor-pointer"
                 >
                   +
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                {product.inStock} disponível
+                {product.quantity ?? 0} disponível
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button className="flex-1" size="lg">
+              <Button
+                className="flex-1 cursor-pointer"
+                size="lg"
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+              >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Adicionar ao Carrinho
+                {addingToCart ? "Adicionando..." : "Adicionar ao Carrinho"}
               </Button>
-              <Button variant="outline" size="icon" className="shrink-0">
-                <Heart className="h-5 w-5" />
-                <span className="sr-only">Adicionar aos favoritos</span>
-              </Button>
-              <Button variant="outline" size="icon" className="shrink-0">
-                <Share className="h-5 w-5" />
-                <span className="sr-only">Compartilhar</span>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 cursor-pointer"
+                onClick={handleToggleFavorite}
+                disabled={favLoading}
+              >
+                <Heart
+                  className={`h-5 w-5 ${
+                    isFavoriteForProduct(product.id!)
+                      ? "text-red-500 fill-red-500"
+                      : ""
+                  }`}
+                />
+                <span className="sr-only">Favoritar</span>
               </Button>
             </div>
           </div>
@@ -332,147 +386,50 @@ export default function ProductPage({
         </div>
       </div>
 
-      <Tabs defaultValue="details" className="mb-12">
-        <TabsList className="mb-4">
-          <TabsTrigger value="details">Detalhes</TabsTrigger>
-          <TabsTrigger value="history">História</TabsTrigger>
-          <TabsTrigger value="shipping">Envio</TabsTrigger>
-        </TabsList>
-        <TabsContent value="details" className="space-y-4">
-          <h2 className="text-xl font-medium">Sobre este item</h2>
-          <p>{product.description}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <h3 className="font-medium mb-2">Especificações</h3>
-              <ul className="space-y-2">
-                {product.specifications.map((spec, index) => (
-                  <li key={index} className="flex">
-                    <span className="font-medium w-32">{spec.name}:</span>
-                    <span>{spec.value}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Dimensões</h3>
-              <p>{product.dimensions}</p>
-              <h3 className="font-medium mt-4 mb-2">Origem</h3>
-              <p>{product.origin}</p>
-            </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="history">
-          <h2 className="text-xl font-medium mb-4">História do Item</h2>
-          <p>{product.history}</p>
-        </TabsContent>
-        <TabsContent value="shipping">
-          <h2 className="text-xl font-medium mb-4">Informações de Envio</h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Prazo de Entrega</h3>
-              <p>
-                7-10 dias úteis para todo o Brasil. Envio com seguro e
-                rastreamento.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Embalagem</h3>
-              <p>
-                Todos os itens são cuidadosamente embalados para garantir a
-                segurança durante o transporte. Itens frágeis recebem embalagem
-                especial.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Política de Devolução</h3>
-              <p>
-                Aceitamos devoluções em até 14 dias após o recebimento, desde
-                que o item esteja nas mesmas condições em que foi enviado.
-              </p>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
+      {/* Related */}
       <section className="mb-12">
         <h2 className="text-2xl font-serif font-bold mb-6">
           Produtos Relacionados
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-          {relatedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {related.map((p) => (
+            <ProductCard key={p.id} product={p} />
           ))}
         </div>
       </section>
 
+      {/* Reviews */}
       <section className="mb-12">
         <h2 className="text-2xl font-serif font-bold mb-6">
           Avaliações e Comentários
         </h2>
 
-        {/* Resumo das avaliações */}
         <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-8">
           <div className="bg-muted p-6 rounded-lg text-center">
-            <div className="text-4xl font-bold mb-2">4.7</div>
-            <div className="flex justify-center mb-2">
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500 fill-opacity-50" />
+            <div className="text-4xl font-bold mb-2">
+              {avgRating.toFixed(1)}
+            </div>
+            <div className="flex justify-center mb-2 text-amber-500">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-5 w-5 ${
+                    i < Math.round(avgRating) ? "fill-current" : "fill-muted"
+                  }`}
+                />
+              ))}
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Baseado em 23 avaliações
+              Baseado em {reviewCount} avaliações
             </p>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="text-sm w-8">5 ★</div>
-                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[75%]"></div>
-                </div>
-                <div className="text-sm w-8">75%</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm w-8">4 ★</div>
-                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[20%]"></div>
-                </div>
-                <div className="text-sm w-8">20%</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm w-8">3 ★</div>
-                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[5%]"></div>
-                </div>
-                <div className="text-sm w-8">5%</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm w-8">2 ★</div>
-                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[0%]"></div>
-                </div>
-                <div className="text-sm w-8">0%</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm w-8">1 ★</div>
-                <div className="h-2 flex-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[0%]"></div>
-                </div>
-                <div className="text-sm w-8">0%</div>
-              </div>
-            </div>
           </div>
 
-          {/* Formulário de avaliação */}
           <div>
             <h3 className="text-lg font-medium mb-4">Adicionar avaliação</h3>
+
             <div className="space-y-4">
               <div>
-                <label
-                  htmlFor="rating"
-                  className="block text-sm font-medium mb-2"
-                >
+                <label className="block text-sm font-medium mb-2">
                   Sua avaliação
                 </label>
                 <div className="flex gap-1">
@@ -481,74 +438,70 @@ export default function ProductPage({
                       key={star}
                       type="button"
                       onClick={() => setUserRating(star)}
-                      className="text-amber-500"
+                      className="text-amber-500 cursor-pointer hover:text-amber-500/80"
+                      aria-label={`Avaliar ${star}`}
                     >
                       <Star
                         className={`h-8 w-8 ${
-                          star <= userRating
-                            ? "fill-amber-500 text-amber-500"
-                            : "fill-muted text-muted-foreground"
+                          star <= userRating ? "fill-amber-500" : "fill-muted"
                         }`}
                       />
                     </button>
                   ))}
                 </div>
               </div>
+
               <div>
-                <label
-                  htmlFor="comment"
-                  className="block text-sm font-medium mb-2"
-                >
+                <label className="block text-sm font-medium mb-2">
                   Seu comentário
                 </label>
                 <textarea
-                  id="comment"
                   rows={4}
                   value={userComment}
                   onChange={(e) => setUserComment(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  placeholder="Compartilhe sua experiência com este produto..."
-                ></textarea>
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Compartilhe sua experiência..."
+                />
               </div>
-              <Button onClick={handleSubmitReview}>Enviar avaliação</Button>
+
+              <Button onClick={handleSubmitReview} className="cursor-pointer">
+                Enviar avaliação
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Lista de comentários */}
         <div className="space-y-6">
-          {reviews.map((review) => (
-            <div key={review.id} className="border-b pb-6">
+          {reviews.map((r) => (
+            <div key={r.id} className="border-b pb-6">
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage
-                        src={review.avatar || "/placeholder.svg"}
-                        alt={review.author}
+                        src={r.authorAvatar ?? "/placeholder-user.jpg"}
+                        alt={r.author}
                       />
-                      <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{r.author?.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{review.author}</span>
+                    <span className="font-medium">{r.author}</span>
                   </div>
-                  <div className="flex mt-1">
+                  <div className="flex mt-1 text-amber-500">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`h-4 w-4 ${
-                          i < review.rating
-                            ? "fill-amber-500 text-amber-500"
-                            : "fill-muted text-muted-foreground"
+                          i < r.rating ? "fill-current" : "fill-muted"
                         }`}
                       />
                     ))}
                   </div>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {review.date}
+                  {new Date(r.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <p className="mt-2">{review.comment}</p>
+              <p className="mt-2">{r.content}</p>
             </div>
           ))}
         </div>

@@ -32,7 +32,7 @@ export const useFavoriteStore = create<FavoriteStore>((set, get) => ({
   toggleFavorite: async (productId: string) => {
     set({ loading: true });
     try {
-      const res = await axios.post(`/favorites/toggle/${productId}`);
+      const res = await axios.post(`/favorites/${productId}`);
       // backend returns { removed: true } ou { favorite }
       if (res.data.removed) {
         set((s) => ({

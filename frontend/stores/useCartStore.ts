@@ -42,7 +42,7 @@ export const useCartStore = create<CartStore>((set) => ({
   addToCart: async (productId: string, quantity: number) => {
     set({ loading: true });
     try {
-      await axios.post("/cart/add", { productId, quantity });
+      await axios.post("/cart", { productId, quantity });
       // refresh
       const res = await axios.get("/cart");
       set({ cart: res.data.cart ?? null, loading: false });
@@ -59,7 +59,7 @@ export const useCartStore = create<CartStore>((set) => ({
   removeFromCart: async (productId: string) => {
     set({ loading: true });
     try {
-      await axios.delete(`/cart/item/${encodeURIComponent(productId)}`);
+      await axios.delete(`/cart/${encodeURIComponent(productId)}`);
       const res = await axios.get("/cart");
       set({ cart: res.data.cart ?? null, loading: false });
     } catch (error) {

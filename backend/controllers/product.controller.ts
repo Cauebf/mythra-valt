@@ -3,6 +3,7 @@ import { prisma } from "../lib/db.js";
 import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import { capitalizeWords } from "../lib/utils.js";
 
 async function updateFeaturedProductsCache() {
   try {
@@ -44,6 +45,45 @@ export const getAllProducts = async (req: Request, res: Response) => {
     res.status(200).json({ products });
   } catch (error) {
     console.error("Error getting products:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ message });
+  }
+};
+
+export const getProductById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        reviews: true,
+        comments: true,
+        favorites: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({ product });
+  } catch (error) {
+    console.error("Error getting product by ID:", error);
     const message =
       error instanceof Error ? error.message : "Internal server error";
     res.status(500).json({ message });
@@ -115,9 +155,11 @@ export const createProduct = async (
       }
     }
 
+    const formattedTitle = capitalizeWords(title);
+
     const product = await prisma.product.create({
       data: {
-        title,
+        title: formattedTitle,
         description,
         price: parseFloat(price),
         quantity: parseInt(quantity),

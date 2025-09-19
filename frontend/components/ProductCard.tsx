@@ -17,13 +17,41 @@ export default function ProductCard({ product }: { product?: Product | null }) {
   const image = images.length > 0 ? images[0] : "/placeholder.svg";
   const category =
     (product as any)?.category?.name ?? product?.categoryId ?? "";
-  // optional fields (not in schema by default)
   const discount = (product as any)?.discount ?? 0;
-  const rating = (product as any)?.rating ?? 0;
-  const reviewCount =
-    (product as any)?.reviewCount ?? (product as any)?.reviews?.length ?? 0;
 
-  // formatted price
+  // derive rating & count:
+  // prefer product.avgRating if provided by backend,
+  // otherwise compute from product.reviews array (if included),
+  // otherwise 0.
+  const rating: number = (() => {
+    if (
+      (product as any)?.avgRating !== undefined &&
+      (product as any).avgRating !== null
+    ) {
+      return Number((product as any).avgRating) || 0;
+    }
+    if (
+      Array.isArray((product as any).reviews) &&
+      (product as any).reviews.length > 0
+    ) {
+      const arr = (product as any).reviews;
+      const sum = arr.reduce(
+        (s: number, r: any) => s + (Number(r.rating) || 0),
+        0
+      );
+      return sum / arr.length;
+    }
+    return 0;
+  })();
+
+  const reviewCount: number = (() => {
+    if ((product as any)._count?.reviews !== undefined)
+      return Number((product as any)._count.reviews) || 0;
+    if (Array.isArray((product as any).reviews))
+      return (product as any).reviews.length;
+    return 0;
+  })();
+
   const formattedPrice = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",

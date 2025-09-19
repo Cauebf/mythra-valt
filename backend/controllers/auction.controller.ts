@@ -3,6 +3,7 @@ import { prisma } from "../lib/db.js";
 import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import { capitalizeWords } from "../lib/utils.js";
 
 async function updateActiveAuctionsCache() {
   try {
@@ -154,9 +155,11 @@ export const createAuction = async (
       }
     }
 
+    const formattedTitle = capitalizeWords(title);
+
     const auction = await prisma.auction.create({
       data: {
-        title,
+        title: formattedTitle,
         description,
         images: uploadedImages,
         era,

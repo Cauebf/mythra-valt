@@ -7,7 +7,7 @@ import { protectedRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/", protectedRoute, toggleFavorite);
+router.post("/:productId", protectedRoute, toggleFavorite);
 router.get("/", protectedRoute, getUserFavorites);
 
 export default router;

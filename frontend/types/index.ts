@@ -64,6 +64,11 @@ export type Product = {
   createdAt?: string;
   updatedAt?: string;
   category?: Category | null;
+  avgRating?: number;
+  _count?: {
+    reviews?: number;
+  };
+  specifications?: { name: string; value: string }[];
 };
 
 export type ProductStore = {
