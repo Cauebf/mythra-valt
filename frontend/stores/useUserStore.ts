@@ -26,7 +26,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
     if (password !== confirmPassword) {
       set({ loading: false });
       toast.error("Senhas não coincidem");
-      return;
+      return { message: "error" };
     }
 
     try {

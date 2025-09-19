@@ -1,10 +1,11 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import toast from "react-hot-toast";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,47 +32,156 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { ImagePlus, X, Info, AlertCircle, Calendar } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ImagePlus, X, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Image from "next/image";
+
+import { useCategoryStore } from "@/stores/useCategoryStore";
+import { Auction, useAuctionStore } from "@/stores/useAuctionStore";
+
+const ERAS = [
+  { value: "antiquity", label: "Antiguidade" },
+  { value: "17th", label: "Século XVII" },
+  { value: "18th", label: "Século XVIII" },
+  { value: "19th", label: "Século XIX" },
+  { value: "20th", label: "Século XX" },
+  { value: "other", label: "Outra" },
+];
+
+const CONDITIONS = [
+  { value: "EXCELLENT", label: "Excelente" },
+  { value: "GOOD", label: "Bom" },
+  { value: "FAIR", label: "Regular" },
+  { value: "RESTORED", label: "Restaurado" },
+  { value: "DAMAGED", label: "Com danos" },
+];
+
+const AUTHENTICITY = [
+  { value: "VERIFIED", label: "Verificada com certificado" },
+  { value: "GUARANTEED", label: "Garantida pelo vendedor" },
+  { value: "UNKNOWN", label: "Não verificada" },
+];
 
 export default function CreateAuctionPage() {
   const router = useRouter();
+  const { createAuction, loading: auctionLoading } = useAuctionStore();
+  const {
+    categories,
+    fetchAllCategories,
+    loading: categoriesLoading,
+  } = useCategoryStore();
+
+  // form state
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [era, setEra] = useState<string | undefined>(undefined);
+  const [description, setDescription] = useState("");
+  const [condition, setCondition] = useState<string | undefined>(undefined);
+  const [origin, setOrigin] = useState("");
+  const [dimensions, setDimensions] = useState("");
+  const [material, setMaterial] = useState("");
+  const [authenticity, setAuthenticity] = useState<string | undefined>(
+    undefined
+  );
+  const [provenance, setProvenance] = useState("");
+
+  // auction settings
+  const [startingBid, setStartingBid] = useState<string>("0.00");
+  const [durationDays, setDurationDays] = useState<string>("7"); // default 7 days
+  const [startDate, setStartDate] = useState<string>(() => {
+    const today = new Date();
+    // default start = today (format YYYY-MM-DD)
+    return today.toISOString().slice(0, 10);
+  });
+
+  // images (base64)
   const [images, setImages] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Simulação de upload de imagem
-  const handleImageUpload = () => {
-    // Em um caso real, aqui seria implementado o upload real da imagem
-    const newImage = `/placeholder.svg?height=300&width=300&text=Imagem ${
-      images.length + 1
-    }`;
-    setImages([...images, newImage]);
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
+
+  // convert file to base64
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files) return;
+    const allowed = Array.from(files).slice(0, 8 - images.length);
+    try {
+      const base64s = await Promise.all(allowed.map((f) => fileToBase64(f)));
+      setImages((prev) => [...prev, ...base64s]);
+    } catch (err) {
+      console.error("Image read error", err);
+      toast.error("Erro ao processar imagens");
+    }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const newImages = [...images];
-    newImages.splice(index, 1);
-    setImages(newImages);
+  const handleRemoveImage = (index: number) =>
+    setImages((prev) => prev.filter((_, i) => i !== index));
+
+  const validate = () => {
+    if (!title.trim()) return "Preencha o título do leilão";
+    if (!category) return "Selecione uma categoria";
+    if (!era) return "Selecione a época";
+    if (!description.trim()) return "Preencha a descrição detalhada";
+    if (!condition) return "Selecione o estado de conservação";
+    const sb = parseFloat(startingBid);
+    if (Number.isNaN(sb) || sb < 0)
+      return "Informe um lance inicial válido (>= 0)";
+    if (!startDate) return "Informe a data de início";
+    if (
+      !durationDays ||
+      Number.isNaN(parseInt(durationDays)) ||
+      parseInt(durationDays) < 1
+    )
+      return "Selecione uma duração válida";
+    if (images.length === 0) return "Adicione ao menos 1 imagem";
+    return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    const errMsg = validate();
+    if (errMsg) {
+      toast.error(errMsg);
+      return;
+    }
 
-    // Simulação de envio do formulário
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Redirecionar para a página de sucesso ou perfil
-      router.push("/perfil/leiloes?success=true");
-    }, 1500);
+    const start = new Date(startDate + "T00:00:00Z");
+    const days = parseInt(durationDays, 10);
+    const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+
+    type Authenticity = "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED";
+    type Condition = "EXCELLENT" | "GOOD" | "FAIR" | "RESTORED" | "DAMAGED";
+
+    const payload: Auction = {
+      title,
+      description,
+      images,
+      era,
+      origin,
+      material,
+      authenticity: authenticity as Authenticity,
+      provenance,
+      dimensions,
+      condition: condition as Condition,
+      startingBid: parseFloat(startingBid),
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      categoryId: category!,
+    };
+
+    const created = await createAuction(payload);
+
+    if (created) {
+      // redirect after small delay so user sees toast
+      // setTimeout(() => router.push("/perfil/leiloes?success=true"), 600);
+    }
   };
 
   return (
@@ -95,8 +205,7 @@ export default function CreateAuctionPage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-serif font-bold mb-2">Criar Leilão</h1>
         <p className="text-muted-foreground mb-8">
-          Configure seu leilão para atrair lances competitivos para seu item de
-          coleção ou antiguidade.
+          Configure seu leilão para atrair lances competitivos para seu item.
         </p>
 
         <Alert className="mb-8 border-amber-200 bg-amber-50">
@@ -104,7 +213,7 @@ export default function CreateAuctionPage() {
           <AlertTitle className="text-amber-600">Dica para leilões</AlertTitle>
           <AlertDescription className="text-amber-700">
             Leilões com lance inicial mais baixo tendem a atrair mais
-            participantes e frequentemente alcançam valores finais mais altos.
+            participantes.
           </AlertDescription>
         </Alert>
 
@@ -116,9 +225,7 @@ export default function CreateAuctionPage() {
                   <CardTitle className="text-2xl">
                     Informações do Item
                   </CardTitle>
-                  <CardDescription>
-                    Detalhes sobre o item a ser leiloado
-                  </CardDescription>
+                  <CardDescription>Detalhes sobre o item</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -127,12 +234,13 @@ export default function CreateAuctionPage() {
                     </Label>
                     <Input
                       id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       placeholder="Ex: Pintura a Óleo Século XIX - Paisagem Europeia"
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Um título atrativo aumenta o interesse e a visibilidade do
-                      seu leilão.
+                      Um título atrativo aumenta a visibilidade.
                     </p>
                   </div>
 
@@ -141,32 +249,47 @@ export default function CreateAuctionPage() {
                       <Label htmlFor="category" className="mb-1">
                         Categoria *
                       </Label>
-                      <Select required>
+                      <Select
+                        onValueChange={(val) => setCategory(val)}
+                        value={category}
+                      >
                         <SelectTrigger
                           id="category"
                           className="w-full cursor-pointer"
                         >
-                          <SelectValue placeholder="Selecione uma categoria" />
+                          <SelectValue
+                            placeholder={
+                              categoriesLoading
+                                ? "Carregando..."
+                                : "Selecione uma categoria"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="furniture">Móveis</SelectItem>
-                          <SelectItem value="art">Arte</SelectItem>
-                          <SelectItem value="jewelry">Joias</SelectItem>
-                          <SelectItem value="books">Livros</SelectItem>
-                          <SelectItem value="watches">Relógios</SelectItem>
-                          <SelectItem value="porcelain">Porcelana</SelectItem>
-                          <SelectItem value="numismatics">
-                            Numismática
-                          </SelectItem>
-                          <SelectItem value="other">Outros</SelectItem>
+                          {categories.length > 0 ? (
+                            categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))
+                          ) : categoriesLoading ? (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Carregando...
+                            </div>
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Nenhuma categoria
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label htmlFor="era" className="mb-1">
                         Época *
                       </Label>
-                      <Select required>
+                      <Select onValueChange={(val) => setEra(val)} value={era}>
                         <SelectTrigger
                           id="era"
                           className="w-full cursor-pointer"
@@ -174,12 +297,11 @@ export default function CreateAuctionPage() {
                           <SelectValue placeholder="Selecione a época" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="antiquity">Antiguidade</SelectItem>
-                          <SelectItem value="17th">Século XVII</SelectItem>
-                          <SelectItem value="18th">Século XVIII</SelectItem>
-                          <SelectItem value="19th">Século XIX</SelectItem>
-                          <SelectItem value="20th">Século XX</SelectItem>
-                          <SelectItem value="other">Outra</SelectItem>
+                          {ERAS.map((e) => (
+                            <SelectItem key={e.value} value={e.value}>
+                              {e.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -191,7 +313,9 @@ export default function CreateAuctionPage() {
                     </Label>
                     <Textarea
                       id="description"
-                      placeholder="Descreva o item em detalhes, incluindo características, história, estado de conservação, etc."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Descreva o item: características, história, estado."
                       rows={6}
                       required
                     />
@@ -202,9 +326,7 @@ export default function CreateAuctionPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">Especificações</CardTitle>
-                  <CardDescription>
-                    Detalhes técnicos e características do item
-                  </CardDescription>
+                  <CardDescription>Detalhes técnicos</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -212,7 +334,10 @@ export default function CreateAuctionPage() {
                       <Label htmlFor="condition" className="mb-1">
                         Estado de conservação *
                       </Label>
-                      <Select required>
+                      <Select
+                        onValueChange={(val) => setCondition(val)}
+                        value={condition}
+                      >
                         <SelectTrigger
                           id="condition"
                           className="w-full cursor-pointer"
@@ -220,21 +345,24 @@ export default function CreateAuctionPage() {
                           <SelectValue placeholder="Selecione o estado" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="excellent">Excelente</SelectItem>
-                          <SelectItem value="good">Bom</SelectItem>
-                          <SelectItem value="regular">Regular</SelectItem>
-                          <SelectItem value="restored">Restaurado</SelectItem>
-                          <SelectItem value="damaged">Com danos</SelectItem>
+                          {CONDITIONS.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label htmlFor="origin" className="mb-1">
                         Origem
                       </Label>
                       <Input
                         id="origin"
-                        placeholder="Ex: França, Alemanha, etc."
+                        value={origin}
+                        onChange={(e) => setOrigin(e.target.value)}
+                        placeholder="Ex: França"
                       />
                     </div>
                   </div>
@@ -246,6 +374,8 @@ export default function CreateAuctionPage() {
                       </Label>
                       <Input
                         id="dimensions"
+                        value={dimensions}
+                        onChange={(e) => setDimensions(e.target.value)}
                         placeholder="Ex: 50cm x 30cm x 20cm"
                       />
                     </div>
@@ -255,7 +385,9 @@ export default function CreateAuctionPage() {
                       </Label>
                       <Input
                         id="material"
-                        placeholder="Ex: Madeira, Ouro, Prata, etc."
+                        value={material}
+                        onChange={(e) => setMaterial(e.target.value)}
+                        placeholder="Ex: Madeira, Ouro"
                       />
                     </div>
                   </div>
@@ -264,7 +396,10 @@ export default function CreateAuctionPage() {
                     <Label htmlFor="authenticity" className="mb-1">
                       Autenticidade
                     </Label>
-                    <Select>
+                    <Select
+                      onValueChange={(val) => setAuthenticity(val)}
+                      value={authenticity}
+                    >
                       <SelectTrigger
                         id="authenticity"
                         className="w-full cursor-pointer"
@@ -272,13 +407,11 @@ export default function CreateAuctionPage() {
                         <SelectValue placeholder="Selecione a autenticidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="verified">
-                          Verificada com certificado
-                        </SelectItem>
-                        <SelectItem value="guaranteed">
-                          Garantida pelo vendedor
-                        </SelectItem>
-                        <SelectItem value="unknown">Não verificada</SelectItem>
+                        {AUTHENTICITY.map((a) => (
+                          <SelectItem key={a.value} value={a.value}>
+                            {a.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -289,7 +422,9 @@ export default function CreateAuctionPage() {
                     </Label>
                     <Textarea
                       id="provenance"
-                      placeholder="Descreva a origem e histórico de propriedade do item"
+                      value={provenance}
+                      onChange={(e) => setProvenance(e.target.value)}
+                      placeholder="Histórico de propriedade, certificados, etc."
                       rows={4}
                     />
                   </div>
@@ -301,9 +436,7 @@ export default function CreateAuctionPage() {
                   <CardTitle className="text-2xl">
                     Configurações do Leilão
                   </CardTitle>
-                  <CardDescription>
-                    Defina os parâmetros do seu leilão
-                  </CardDescription>
+                  <CardDescription>Defina os parâmetros</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -316,36 +449,23 @@ export default function CreateAuctionPage() {
                         type="number"
                         min="0"
                         step="0.01"
-                        placeholder="0,00"
+                        value={startingBid}
+                        onChange={(e) => setStartingBid(e.target.value)}
                         required
                       />
                       <p className="text-xs text-muted-foreground mt-1">
                         Valor mínimo para iniciar os lances
                       </p>
                     </div>
-                    <div>
-                      <Label htmlFor="reserve-price" className="mb-1">
-                        Preço de reserva (R$)
-                      </Label>
-                      <Input
-                        id="reserve-price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0,00"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Valor mínimo para concluir a venda (opcional)
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="duration" className="mb-1">
                         Duração do leilão *
                       </Label>
-                      <Select required>
+                      <Select
+                        onValueChange={(val) => setDurationDays(val)}
+                        value={durationDays}
+                      >
                         <SelectTrigger
                           id="duration"
                           className="w-full cursor-pointer"
@@ -361,52 +481,31 @@ export default function CreateAuctionPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 items-end">
                     <div>
                       <Label htmlFor="start-date" className="mb-1">
                         Data de início *
                       </Label>
                       <div className="relative">
-                        <Input id="start-date" type="date" required />
-                        <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          required
+                        />
                       </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label htmlFor="shipping">
-                        Opções de envio após o leilão *
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Defina como o item será enviado ao vencedor do
-                              leilão.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                    <div>
+                      <Label className="mb-1">Observações</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Comece o leilão quando quiser — a data escolhida é
+                        convertida para UTC ao enviar.
+                      </p>
                     </div>
-                    <Select required>
-                      <SelectTrigger
-                        id="shipping"
-                        className="w-full cursor-pointer"
-                      >
-                        <SelectValue placeholder="Selecione a opção de envio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="free">Frete grátis</SelectItem>
-                        <SelectItem value="fixed">Frete fixo</SelectItem>
-                        <SelectItem value="calculated">
-                          Frete calculado pelo comprador
-                        </SelectItem>
-                        <SelectItem value="pickup">Apenas retirada</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </CardContent>
               </Card>
@@ -417,31 +516,46 @@ export default function CreateAuctionPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl">Imagens</CardTitle>
                   <CardDescription>
-                    Adicione fotos de alta qualidade do seu item
+                    Adicione fotos de alta qualidade
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div
-                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={handleImageUpload}
+                  <label
+                    htmlFor="images"
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors block"
                   >
-                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm font-medium">
-                      Clique para adicionar imagens
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recomendado: pelo menos 4 fotos de diferentes ângulos
-                    </p>
-                  </div>
+                    <div className="flex flex-col items-center">
+                      <ImagePlus className="h-8 w-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium">
+                        Clique ou selecione imagens (até 8)
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Recomendado: pelo menos 4 fotos
+                      </p>
+                    </div>
+                    <input
+                      id="images"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => handleFiles(e.target.files)}
+                    />
+                  </label>
 
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 mt-4">
                       {images.map((image, index) => (
-                        <div key={index} className="relative group">
+                        <div
+                          key={index}
+                          className="relative group rounded-md overflow-hidden border"
+                        >
                           <Image
-                            src={image || "/placeholder.svg"}
+                            src={image}
                             alt={`Imagem ${index + 1}`}
                             className="w-full h-24 object-cover rounded-md"
+                            width={400}
+                            height={300}
                           />
                           <button
                             type="button"
@@ -461,36 +575,104 @@ export default function CreateAuctionPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl">Resumo</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Taxa de serviço (7.5%)
+
+                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Título:
                       </span>
-                      <span>Calculado após o leilão</span>
+                      <br />
+                      {title || "—"}
                     </div>
-                    <Separator />
-                    <div className="flex justify-between font-medium">
-                      <span>Você receberá</span>
-                      <span>92.5% do lance vencedor</span>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Categoria:
+                      </span>
+                      <br />
+                      {categories.find((c) => c.id === category)?.name || "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Época:
+                      </span>
+                      <br />
+                      {ERAS.find((e) => e.value === era)?.label || "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Estado:
+                      </span>
+                      <br />
+                      {CONDITIONS.find((c) => c.value === condition)?.label ||
+                        "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Lance inicial:
+                      </span>
+                      <br />
+                      {`R$ ${parseFloat(startingBid || "0").toFixed(2)}`}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Duração:
+                      </span>
+                      <br />
+                      {durationDays} dias
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium text-foreground">
+                        Autenticidade:
+                      </span>
+                      <br />
+                      {AUTHENTICITY.find((a) => a.value === authenticity)
+                        ?.label || "—"}
                     </div>
                   </div>
+
+                  {images.length > 0 && (
+                    <div className="mt-4">
+                      <p className="font-medium text-foreground mb-2">
+                        Prévia das imagens:
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {images.slice(0, 3).map((image, index) => (
+                          <Image
+                            key={index}
+                            src={image}
+                            alt={`Imagem ${index + 1}`}
+                            className="rounded object-cover w-full h-20"
+                            width={120}
+                            height={80}
+                          />
+                        ))}
+                      </div>
+                      {images.length > 3 && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          + {images.length - 3} imagem(ns) adicional(is)
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
+
                 <CardFooter className="flex flex-col gap-4">
                   <Button
                     type="submit"
-                    className="w-full cursor-pointer disabled:cursor-not-allowed"
-                    disabled={isSubmitting}
+                    className="w-full cursor-pointer"
+                    disabled={auctionLoading}
                   >
-                    {isSubmitting ? "Publicando..." : "Publicar Leilão"}
+                    {auctionLoading ? "Publicando..." : "Publicar Leilão"}
                   </Button>
+
                   <Button
                     type="button"
                     variant="outline"
                     className="w-full"
                     asChild
                   >
-                    <Link href="/vender">Cancelar</Link>
+                    <Link href="/sell">Cancelar</Link>
                   </Button>
                 </CardFooter>
               </Card>

@@ -13,7 +13,7 @@ export type Bid = {
 };
 
 export type Auction = {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   images: string[];
@@ -21,13 +21,14 @@ export type Auction = {
   origin?: string | null;
   material?: string | null;
   authenticity?: "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED" | null;
+  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED" | "DAMAGED";
   provenance?: string | null;
   certificateUrl?: string | null;
   dimensions?: string | null;
   startingBid: number;
   startTime: string;
   endTime: string;
-  ownerId: string;
+  ownerId?: string;
   categoryId: string;
   bids?: Bid[];
   comments?: any[];

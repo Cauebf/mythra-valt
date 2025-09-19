@@ -114,7 +114,7 @@ export const createAuction = async (
       material,
       authenticity,
       provenance,
-      certificateUrl,
+      condition,
       dimensions,
     } = req.body;
 
@@ -164,7 +164,7 @@ export const createAuction = async (
         material,
         authenticity,
         provenance,
-        certificateUrl,
+        condition,
         dimensions,
         startingBid: startingBid,
         startTime: start,

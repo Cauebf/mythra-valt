@@ -15,7 +15,7 @@ datasource db {
 }
 
 // Enums
-enum ProductCondition {
+enum Condition {
   EXCELLENT
   GOOD
   FAIR
@@ -82,7 +82,7 @@ model Product {
   images       String[] // Array of image URLs
   isFeatured   Boolean            @default(false)
   quantity     Int                @default(1)
-  condition    ProductCondition
+  condition    Condition
   dimensions   String? // "LxWxH in cm"
   era          String? // e.g., "Século XIX"
   origin       String? // Country/region of origin
@@ -106,22 +106,22 @@ model Product {
 }
 
 model Auction {
-  id             String             @id @default(cuid())
-  title          String
-  description    String
-  images         String[] // Array of image URLs
-  era            String?
-  origin         String?
-  material       String?
-  authenticity   AuthenticityStatus @default(UNKNOWN)
-  provenance     String?
-  certificateUrl String?
-  dimensions     String?
-  startingBid    Decimal            @db.Decimal(10, 2)
-  startTime      DateTime
-  endTime        DateTime
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id           String             @id @default(cuid())
+  title        String
+  description  String
+  images       String[] // Array of image URLs
+  era          String?
+  origin       String?
+  material     String?
+  authenticity AuthenticityStatus @default(UNKNOWN)
+  condition    Condition
+  provenance   String?
+  dimensions   String?
+  startingBid  Decimal            @db.Decimal(10, 2)
+  startTime    DateTime
+  endTime      DateTime
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   ownerId    String
   owner      User        @relation("UserAuctions", fields: [ownerId], references: [id], onDelete: Cascade)
