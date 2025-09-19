@@ -16,19 +16,19 @@ datasource db {
 
 // Enums
 enum Condition {
-  EXCELLENT
-  GOOD
-  FAIR
-  POOR
-  RESTORED
-  DAMAGED
+  EXCELENTE
+  BOA
+  REGULAR
+  RUIM
+  RESTAURADA
+  DANIFICADA
 }
 
 enum AuthenticityStatus {
-  VERIFIED
-  GUARANTEED
-  UNKNOWN
-  DISPUTED
+  VERIFICADA
+  GARANTIDA
+  DESCONHECIDA
+  CONTESTADA
 }
 
 // Models
@@ -87,7 +87,7 @@ model Product {
   era          String? // e.g., "Século XIX"
   origin       String? // Country/region of origin
   material     String? // Primary material
-  authenticity AuthenticityStatus @default(UNKNOWN)
+  authenticity AuthenticityStatus @default(DESCONHECIDA)
   provenance   String? // History of ownership
 
   ownerId    String
@@ -113,7 +113,7 @@ model Auction {
   era          String?
   origin       String?
   material     String?
-  authenticity AuthenticityStatus @default(UNKNOWN)
+  authenticity AuthenticityStatus @default(DESCONHECIDA)
   condition    Condition
   provenance   String?
   dimensions   String?

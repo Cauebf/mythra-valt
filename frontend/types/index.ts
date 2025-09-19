@@ -4,6 +4,19 @@ export type CategoryCardType = {
   img: string;
 };
 
+export type Condition =
+  | "EXCELENTE"
+  | "BOM"
+  | "REGULAR"
+  | "RESTAURADA"
+  | "DANIFICADA";
+
+export type Authenticity =
+  | "VERIFICADA"
+  | "GARANTIDA"
+  | "DESCONHECIDA"
+  | "CONTESTADA";
+
 export type Address = {
   street: string;
   city: string;
@@ -50,7 +63,7 @@ export type Product = {
   price: number;
   quantity: number;
   images: string[];
-  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED" | "DAMAGED";
+  condition?: Condition;
   isFeatured?: boolean;
   categoryId?: string;
   ownerId?: string;
@@ -59,7 +72,7 @@ export type Product = {
   era?: string | null;
   origin?: string | null;
   material?: string | null;
-  authenticity?: "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED";
+  authenticity?: Authenticity | null;
   provenance?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -105,8 +118,8 @@ export type Auction = {
   era?: string | null;
   origin?: string | null;
   material?: string | null;
-  authenticity?: "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED" | null;
-  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED" | "DAMAGED";
+  authenticity?: Authenticity | null;
+  condition?: Condition | null;
   provenance?: string | null;
   certificateUrl?: string | null;
   dimensions?: string | null;

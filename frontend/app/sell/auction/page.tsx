@@ -36,29 +36,30 @@ import { ImagePlus, X, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { useCategoryStore } from "@/stores/useCategoryStore";
-import { Auction, useAuctionStore } from "@/stores/useAuctionStore";
+import { useAuctionStore } from "@/stores/useAuctionStore";
+import { Auction, Authenticity, Condition } from "@types";
 
 const ERAS = [
-  { value: "antiquity", label: "Antiguidade" },
+  { value: "antiguidade", label: "Antiguidade" },
   { value: "17th", label: "Século XVII" },
   { value: "18th", label: "Século XVIII" },
   { value: "19th", label: "Século XIX" },
   { value: "20th", label: "Século XX" },
-  { value: "other", label: "Outra" },
+  { value: "outra", label: "Outra" },
 ];
 
 const CONDITIONS = [
-  { value: "EXCELLENT", label: "Excelente" },
-  { value: "GOOD", label: "Bom" },
-  { value: "FAIR", label: "Regular" },
-  { value: "RESTORED", label: "Restaurado" },
-  { value: "DAMAGED", label: "Com danos" },
+  { value: "EXCELENTE", label: "Excelente" },
+  { value: "BOA", label: "Bom" },
+  { value: "REGULAR", label: "Regular" },
+  { value: "RESTAURADA", label: "Restaurado" },
+  { value: "DANIFICADA", label: "Com danos" },
 ];
 
 const AUTHENTICITY = [
-  { value: "VERIFIED", label: "Verificada com certificado" },
-  { value: "GUARANTEED", label: "Garantida pelo vendedor" },
-  { value: "UNKNOWN", label: "Não verificada" },
+  { value: "VERIFICADA", label: "Verificada com certificado" },
+  { value: "GARANTIDA", label: "Garantida pelo vendedor" },
+  { value: "DESCONHECIDA", label: "Não verificada" },
 ];
 
 export default function CreateAuctionPage() {
@@ -155,9 +156,6 @@ export default function CreateAuctionPage() {
     const start = new Date(startDate + "T00:00:00Z");
     const days = parseInt(durationDays, 10);
     const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
-
-    type Authenticity = "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED";
-    type Condition = "EXCELLENT" | "GOOD" | "FAIR" | "RESTORED" | "DAMAGED";
 
     const payload: Auction = {
       title,

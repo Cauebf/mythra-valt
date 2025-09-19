@@ -282,7 +282,7 @@ export default function ProductsPage() {
                         className="cursor-pointer"
                       />
                       <Label htmlFor={`cond-${c}`} className="cursor-pointer">
-                        {c}
+                        {c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()}
                       </Label>
                     </div>
                   ))

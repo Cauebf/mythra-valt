@@ -235,7 +235,10 @@ export default function ProductPage({
           <div className="flex items-center gap-2 mb-2">
             {product.era && <Badge variant="outline">{product.era}</Badge>}
             {product.condition && (
-              <Badge variant="outline">{product.condition}</Badge>
+              <Badge variant="outline">
+                {product.condition.charAt(0).toUpperCase() +
+                  product.condition.slice(1).toLowerCase()}
+              </Badge>
             )}
           </div>
 
@@ -297,7 +300,10 @@ export default function ProductPage({
               <div>
                 <p className="text-sm font-medium">Autenticidade</p>
                 <p className="text-sm text-muted-foreground">
-                  {product.authenticity ?? "UNKNOWN"}
+                  {product.authenticity
+                    ? product.authenticity.charAt(0).toUpperCase() +
+                      product.authenticity.slice(1).toLowerCase()
+                    : "Desconhecida"}
                 </p>
               </div>
             </div>
@@ -387,16 +393,18 @@ export default function ProductPage({
       </div>
 
       {/* Related */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-serif font-bold mb-6">
-          Produtos Relacionados
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-          {related.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-2xl font-serif font-bold mb-6">
+            Produtos Relacionados
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Reviews */}
       <section className="mb-12">
