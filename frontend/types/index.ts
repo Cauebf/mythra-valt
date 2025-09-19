@@ -82,6 +82,77 @@ export type ProductStore = {
   getProductById: (id: string) => Promise<Product | null>;
 };
 
+export type Bid = {
+  id: string;
+  amount: number;
+  createdAt: string;
+  auctionId: string;
+  userId: string;
+  bidder?: { id: string; name?: string; email?: string } | null;
+};
+
+export type Auction = {
+  id?: string;
+  title: string;
+  description: string;
+  images: string[];
+  era?: string | null;
+  origin?: string | null;
+  material?: string | null;
+  authenticity?: "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED" | null;
+  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED" | "DAMAGED";
+  provenance?: string | null;
+  certificateUrl?: string | null;
+  dimensions?: string | null;
+  startingBid: number;
+  startTime: string;
+  endTime: string;
+  ownerId?: string;
+  categoryId: string;
+  bids?: Bid[];
+  comments?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateAuctionDto = Partial<
+  Pick<
+    Auction,
+    | "title"
+    | "description"
+    | "images"
+    | "era"
+    | "origin"
+    | "material"
+    | "authenticity"
+    | "provenance"
+    | "certificateUrl"
+    | "dimensions"
+    | "startingBid"
+    | "startTime"
+    | "endTime"
+    | "categoryId"
+  >
+>;
+
+export type AuctionStore = {
+  auctions: Auction[];
+  activeAuctions: Auction[];
+  loading: boolean;
+
+  setAuctions: (a: Auction[]) => void;
+  setActiveAuctions: (a: Auction[]) => void;
+
+  fetchAllAuctions: () => Promise<void>;
+  fetchActiveAuctions: () => Promise<void>;
+  fetchAuctionById: (id: string) => Promise<Auction | null>;
+  fetchAuctionsByCategory: (category: string) => Promise<void>;
+
+  createAuction: (payload: CreateAuctionDto) => Promise<Auction | null>;
+  deleteAuction: (id: string) => Promise<boolean>;
+  placeBid: (auctionId: string, amount: number) => Promise<Bid | null>;
+};
+
 export type Category = {
   id: string;
   name: string;

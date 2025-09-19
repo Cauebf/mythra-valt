@@ -4,31 +4,31 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
+import { Product } from "@types";
 
-interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    image: string;
-    category?: string;
-    discount?: number;
-    rating?: number;
-    reviewCount?: number;
-  };
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const {
-    id,
-    name,
-    price,
-    image,
-    category,
-    discount,
-    rating = 4.5,
-    reviewCount = 0,
-  } = product;
+export default function ProductCard({
+  product,
+}: {
+  product: Product | undefined;
+}) {
+  // const {
+  //   id,
+  //   name,
+  //   price,
+  //   image,
+  //   category,
+  //   discount,
+  //   rating = 4.5,
+  //   reviewCount = 0,
+  // };
+  const id = 1;
+  const name = "Relógio de Bolso Vintage";
+  const price = 1250;
+  const image = "/placeholder.svg";
+  const category = "Relógios";
+  const discount = 10;
+  const rating = 4.8;
+  const reviewCount = 23;
 
   const formattedPrice = new Intl.NumberFormat("pt-BR", {
     style: "currency",
