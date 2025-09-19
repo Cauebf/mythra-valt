@@ -21,6 +21,7 @@ enum ProductCondition {
   FAIR
   POOR
   RESTORED
+  DAMAGED
 }
 
 enum AuthenticityStatus {
@@ -82,7 +83,6 @@ model Product {
   isFeatured   Boolean            @default(false)
   quantity     Int                @default(1)
   condition    ProductCondition
-  weight       Float? // For shipping calculations
   dimensions   String? // "LxWxH in cm"
   era          String? // e.g., "Século XIX"
   origin       String? // Country/region of origin

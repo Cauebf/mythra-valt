@@ -1,10 +1,11 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import toast from "react-hot-toast";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,47 +32,140 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { ImagePlus, X, Info, AlertCircle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Image from "next/image";
+import { ImagePlus, X } from "lucide-react";
+
+import { useProductStore } from "@/stores/useProductStore";
+import { Product } from "@types";
+
+const CATEGORIES = [
+  { value: "d0d13b6d-cce9-4122-ae16-262f073f2f80", label: "Móveis" },
+  { value: "b6b1d81e-27da-4708-a513-bcb382073a2a", label: "Arte" },
+  { value: "63b61261-a42a-45fb-8f9d-28e4a32ff887", label: "Joias" },
+  { value: "2ffe0808-9dea-46a0-9046-6e4ab4c9415c", label: "Livros" },
+  { value: "84ca9f47-1aa7-4377-8ed6-e17d9f981e01", label: "Relógios" },
+  { value: "e5b0ad81-e068-4869-82ff-2d00402df9aa", label: "Porcelana" },
+  { value: "4d8fee0f-b6a6-4418-aefc-468a3572f466", label: "Outro" },
+];
+
+const ERAS = [
+  { value: "antiquity", label: "Antiguidade" },
+  { value: "17th", label: "Século XVII" },
+  { value: "18th", label: "Século XVIII" },
+  { value: "19th", label: "Século XIX" },
+  { value: "20th", label: "Século XX" },
+  { value: "other", label: "Outra" },
+];
+
+const CONDITIONS = [
+  { value: "EXCELLENT", label: "Excelente" },
+  { value: "GOOD", label: "Bom" },
+  { value: "FAIR", label: "Regular" },
+  { value: "RESTORED", label: "Restaurado" },
+  { value: "DAMAGED", label: "Com danos" },
+];
+
+const AUTHENTICITY = [
+  { value: "VERIFIED", label: "Verificada com certificado" },
+  { value: "GUARANTEED", label: "Garantida pelo vendedor" },
+  { value: "UNKNOWN", label: "Não verificada" },
+];
 
 export default function SellProductPage() {
   const router = useRouter();
-  const [images, setImages] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createProduct, loading: storeLoading } = useProductStore();
 
-  // Simulação de upload de imagem
-  const handleImageUpload = () => {
-    // Em um caso real, aqui seria implementado o upload real da imagem
-    const newImage = `/placeholder.svg?height=300&width=300&text=Imagem ${
-      images.length + 1
-    }`;
-    setImages([...images, newImage]);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [era, setEra] = useState<string | undefined>(undefined);
+  const [description, setDescription] = useState("");
+  const [condition, setCondition] = useState<string | undefined>(undefined);
+  const [origin, setOrigin] = useState("");
+  const [dimensions, setDimensions] = useState("");
+  const [material, setMaterial] = useState("");
+  const [authenticity, setAuthenticity] = useState<string | undefined>(
+    undefined
+  );
+  const [history, setHistory] = useState("");
+  const [price, setPrice] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+
+  const [images, setImages] = useState<string[]>([]);
+
+  // Convert file to base64 string
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files) return;
+    const filesArray = Array.from(files).slice(0, 8 - images.length); // limit 8 images
+    try {
+      const base64Promises = filesArray.map((f) => fileToBase64(f));
+      const base64s = await Promise.all(base64Promises);
+      setImages((prev) => [...prev, ...base64s]);
+    } catch (err) {
+      console.error("Image read error", err);
+      toast.error("Erro ao processar imagens");
+    }
   };
 
   const handleRemoveImage = (index: number) => {
-    const newImages = [...images];
-    newImages.splice(index, 1);
-    setImages(newImages);
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const validate = () => {
+    if (!title.trim()) return "Preencha o título do anúncio";
+    if (!category) return "Selecione uma categoria";
+    if (!era) return "Selecione a época";
+    if (!description.trim()) return "Preencha a descrição detalhada";
+    if (!condition) return "Selecione o estado de conservação";
+    if (!price || Number.isNaN(Number(price)) || Number(price) < 0)
+      return "Informe um preço válido (>= 0)";
+    if (!quantity || quantity < 1) return "Quantidade mínima: 1";
+    if (images.length === 0) return "Adicione ao menos 1 imagem";
+    return null;
+  };
 
-    // Simulação de envio do formulário
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Redirecionar para a página de sucesso ou perfil
-      router.push("/perfil/vendas?success=true");
-    }, 1500);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errorMsg = validate();
+    if (errorMsg) {
+      toast.error(errorMsg);
+      return;
+    }
+
+    type Condition = "EXCELLENT" | "GOOD" | "FAIR" | "RESTORED" | "DAMAGED";
+    type Authenticity = "VERIFIED" | "GUARANTEED" | "UNKNOWN" | "DISPUTED";
+
+    // Build payload matching CreateProductDto
+    const payload: Product = {
+      title,
+      description,
+      price: parseFloat(price),
+      quantity,
+      images, // base64 strings
+      condition: condition as Condition,
+      categoryId: category,
+      weight: undefined,
+      dimensions,
+      era,
+      origin,
+      material,
+      authenticity: authenticity as Authenticity,
+      provenance: history,
+    };
+
+    await createProduct(payload);
+    // small delay to let store update and UX be nice
+    // setTimeout(() => {
+    //   router.push("/perfil/vendas?success=true");
+    // }, 600);
   };
 
   return (
@@ -95,18 +189,8 @@ export default function SellProductPage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-serif font-bold mb-2">Anunciar Produto</h1>
         <p className="text-muted-foreground mb-8">
-          Preencha os detalhes do seu item para criar um anúncio atrativo para
-          os compradores.
+          Preencha os detalhes do seu item para criar um anúncio atrativo.
         </p>
-
-        <Alert className="mb-8">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Importante</AlertTitle>
-          <AlertDescription>
-            Quanto mais detalhes você fornecer, maiores são as chances de vender
-            seu item rapidamente e pelo melhor preço.
-          </AlertDescription>
-        </Alert>
 
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-[2fr_1fr] gap-8">
@@ -116,9 +200,7 @@ export default function SellProductPage() {
                   <CardTitle className="text-2xl">
                     Informações Básicas
                   </CardTitle>
-                  <CardDescription>
-                    Detalhes essenciais sobre o seu produto
-                  </CardDescription>
+                  <CardDescription>Detalhes essenciais</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -127,12 +209,13 @@ export default function SellProductPage() {
                     </Label>
                     <Input
                       id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       placeholder="Ex: Relógio de Bolso Vintage Século XIX"
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Seja específico e inclua detalhes importantes como marca,
-                      época ou estilo.
+                      Seja específico: marca, época ou estilo.
                     </p>
                   </div>
 
@@ -141,7 +224,10 @@ export default function SellProductPage() {
                       <Label htmlFor="category" className="mb-1">
                         Categoria *
                       </Label>
-                      <Select required>
+                      <Select
+                        onValueChange={(val) => setCategory(val)}
+                        value={category}
+                      >
                         <SelectTrigger
                           id="category"
                           className="w-full cursor-pointer"
@@ -149,24 +235,20 @@ export default function SellProductPage() {
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="furniture">Móveis</SelectItem>
-                          <SelectItem value="art">Arte</SelectItem>
-                          <SelectItem value="jewelry">Joias</SelectItem>
-                          <SelectItem value="books">Livros</SelectItem>
-                          <SelectItem value="watches">Relógios</SelectItem>
-                          <SelectItem value="porcelain">Porcelana</SelectItem>
-                          <SelectItem value="numismatics">
-                            Numismática
-                          </SelectItem>
-                          <SelectItem value="other">Outros</SelectItem>
+                          {CATEGORIES.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label htmlFor="era" className="mb-1">
                         Época *
                       </Label>
-                      <Select required>
+                      <Select onValueChange={(val) => setEra(val)} value={era}>
                         <SelectTrigger
                           id="era"
                           className="w-full cursor-pointer"
@@ -174,12 +256,11 @@ export default function SellProductPage() {
                           <SelectValue placeholder="Selecione a época" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="antiquity">Antiguidade</SelectItem>
-                          <SelectItem value="17th">Século XVII</SelectItem>
-                          <SelectItem value="18th">Século XVIII</SelectItem>
-                          <SelectItem value="19th">Século XIX</SelectItem>
-                          <SelectItem value="20th">Século XX</SelectItem>
-                          <SelectItem value="other">Outra</SelectItem>
+                          {ERAS.map((e) => (
+                            <SelectItem key={e.value} value={e.value}>
+                              {e.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -191,7 +272,9 @@ export default function SellProductPage() {
                     </Label>
                     <Textarea
                       id="description"
-                      placeholder="Descreva o item em detalhes, incluindo características, história, estado de conservação, etc."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Descreva o item em detalhes, incluindo histórico e estado."
                       rows={6}
                       required
                     />
@@ -202,9 +285,7 @@ export default function SellProductPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">Especificações</CardTitle>
-                  <CardDescription>
-                    Detalhes técnicos e características do item
-                  </CardDescription>
+                  <CardDescription>Detalhes técnicos</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -212,7 +293,10 @@ export default function SellProductPage() {
                       <Label htmlFor="condition" className="mb-1">
                         Estado de conservação *
                       </Label>
-                      <Select required>
+                      <Select
+                        onValueChange={(val) => setCondition(val)}
+                        value={condition}
+                      >
                         <SelectTrigger
                           id="condition"
                           className="w-full cursor-pointer"
@@ -220,21 +304,24 @@ export default function SellProductPage() {
                           <SelectValue placeholder="Selecione o estado" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="excellent">Excelente</SelectItem>
-                          <SelectItem value="good">Bom</SelectItem>
-                          <SelectItem value="regular">Regular</SelectItem>
-                          <SelectItem value="restored">Restaurado</SelectItem>
-                          <SelectItem value="damaged">Com danos</SelectItem>
+                          {CONDITIONS.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label htmlFor="origin" className="mb-1">
                         Origem
                       </Label>
                       <Input
                         id="origin"
-                        placeholder="Ex: França, Alemanha, etc."
+                        value={origin}
+                        onChange={(e) => setOrigin(e.target.value)}
+                        placeholder="Ex: França"
                       />
                     </div>
                   </div>
@@ -246,6 +333,8 @@ export default function SellProductPage() {
                       </Label>
                       <Input
                         id="dimensions"
+                        value={dimensions}
+                        onChange={(e) => setDimensions(e.target.value)}
                         placeholder="Ex: 50cm x 30cm x 20cm"
                       />
                     </div>
@@ -255,7 +344,9 @@ export default function SellProductPage() {
                       </Label>
                       <Input
                         id="material"
-                        placeholder="Ex: Madeira, Ouro, Prata, etc."
+                        value={material}
+                        onChange={(e) => setMaterial(e.target.value)}
+                        placeholder="Ex: Madeira, Ouro"
                       />
                     </div>
                   </div>
@@ -264,7 +355,10 @@ export default function SellProductPage() {
                     <Label htmlFor="authenticity" className="mb-1">
                       Autenticidade
                     </Label>
-                    <Select>
+                    <Select
+                      onValueChange={(val) => setAuthenticity(val)}
+                      value={authenticity}
+                    >
                       <SelectTrigger
                         id="authenticity"
                         className="w-full cursor-pointer"
@@ -272,13 +366,11 @@ export default function SellProductPage() {
                         <SelectValue placeholder="Selecione a autenticidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="verified">
-                          Verificada com certificado
-                        </SelectItem>
-                        <SelectItem value="guaranteed">
-                          Garantida pelo vendedor
-                        </SelectItem>
-                        <SelectItem value="unknown">Não verificada</SelectItem>
+                        {AUTHENTICITY.map((a) => (
+                          <SelectItem key={a.value} value={a.value}>
+                            {a.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -289,7 +381,9 @@ export default function SellProductPage() {
                     </Label>
                     <Textarea
                       id="history"
-                      placeholder="Conte a história deste item, sua procedência, proprietários anteriores, etc."
+                      value={history}
+                      onChange={(e) => setHistory(e.target.value)}
+                      placeholder="Procedência, proprietários anteriores, restaurações, etc."
                       rows={4}
                     />
                   </div>
@@ -301,9 +395,7 @@ export default function SellProductPage() {
                   <CardTitle className="text-2xl">
                     Preço e Disponibilidade
                   </CardTitle>
-                  <CardDescription>
-                    Defina o valor e a quantidade disponível
-                  </CardDescription>
+                  <CardDescription>Defina valor e quantidade</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -316,6 +408,8 @@ export default function SellProductPage() {
                         type="number"
                         min="0"
                         step="0.01"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
                         placeholder="0,00"
                         required
                       />
@@ -327,8 +421,9 @@ export default function SellProductPage() {
                       <Input
                         id="quantity"
                         type="number"
-                        min="1"
-                        defaultValue="1"
+                        min={1}
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
                         required
                       />
                     </div>
@@ -342,31 +437,46 @@ export default function SellProductPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl">Imagens</CardTitle>
                   <CardDescription>
-                    Adicione fotos de alta qualidade do seu item
+                    Adicione fotos de alta qualidade
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div
-                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={handleImageUpload}
+                  <label
+                    htmlFor="images"
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors block"
                   >
-                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm font-medium">
-                      Clique para adicionar imagens
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recomendado: pelo menos 4 fotos de diferentes ângulos
-                    </p>
-                  </div>
+                    <div className="flex flex-col items-center">
+                      <ImagePlus className="h-8 w-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium">
+                        Clique ou selecione imagens (até 8)
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Recomendado: pelo menos 4 fotos de diferentes ângulos
+                      </p>
+                    </div>
+                    <input
+                      id="images"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => handleFiles(e.target.files)}
+                    />
+                  </label>
 
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 mt-4">
                       {images.map((image, index) => (
-                        <div key={index} className="relative group">
+                        <div
+                          key={index}
+                          className="relative group rounded-md overflow-hidden border"
+                        >
                           <Image
-                            src={image || "/placeholder.svg"}
+                            src={image}
                             alt={`Imagem ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-md"
+                            className="w-full h-28 object-cover"
+                            width={400}
+                            height={300}
                           />
                           <button
                             type="button"
@@ -385,22 +495,109 @@ export default function SellProductPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">Resumo</CardTitle>
+                  <CardDescription>
+                    Revise as informações antes de publicar
+                  </CardDescription>
                 </CardHeader>
+
+                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Título:
+                      </span>
+                      <br />
+                      {title || "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Categoria:
+                      </span>
+                      <br />
+                      {CATEGORIES.find((c) => c.value === category)?.label ||
+                        "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Época:
+                      </span>
+                      <br />
+                      {ERAS.find((e) => e.value === era)?.label || "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Estado:
+                      </span>
+                      <br />
+                      {CONDITIONS.find((c) => c.value === condition)?.label ||
+                        "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Preço:
+                      </span>
+                      <br />
+                      {price ? `R$ ${parseFloat(price).toFixed(2)}` : "—"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Quantidade:
+                      </span>
+                      <br />
+                      {quantity}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium text-foreground">
+                        Autenticidade:
+                      </span>
+                      <br />
+                      {AUTHENTICITY.find((a) => a.value === authenticity)
+                        ?.label || "—"}
+                    </div>
+                  </div>
+
+                  {images.length > 0 && (
+                    <div className="mt-4">
+                      <p className="font-medium text-foreground mb-2">
+                        Prévia das imagens:
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {images.slice(0, 3).map((image, index) => (
+                          <Image
+                            key={index}
+                            src={image}
+                            alt={`Imagem ${index + 1}`}
+                            className="rounded object-cover w-full h-20"
+                            width={120}
+                            height={80}
+                          />
+                        ))}
+                      </div>
+                      {images.length > 3 && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          + {images.length - 3} imagem(ns) adicional(is)
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+
                 <CardFooter className="flex flex-col gap-4">
                   <Button
                     type="submit"
-                    className="w-full cursor-pointer disabled:cursor-not-allowed"
-                    disabled={isSubmitting}
+                    className="w-full cursor-pointer"
+                    disabled={storeLoading}
                   >
-                    {isSubmitting ? "Publicando..." : "Publicar Anúncio"}
+                    {storeLoading ? "Publicando..." : "Publicar Anúncio"}
                   </Button>
+
                   <Button
                     type="button"
                     variant="outline"
                     className="w-full"
                     asChild
                   >
-                    <Link href="/vender">Cancelar</Link>
+                    <Link href="/sell">Cancelar</Link>
                   </Button>
                 </CardFooter>
               </Card>

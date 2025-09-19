@@ -44,13 +44,13 @@ export type UserStore = {
 };
 
 export type Product = {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   price: number;
   quantity: number;
   images: string[];
-  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED";
+  condition?: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "RESTORED" | "DAMAGED";
   isFeatured?: boolean;
   categoryId?: string;
   ownerId?: string;
