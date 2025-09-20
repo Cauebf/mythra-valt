@@ -9,7 +9,7 @@ import { UserStore } from "@types";
 export const useUserStore = create<UserStore>((set, get) => ({
   user: null,
   loading: false,
-  checkingAuth: true,
+  checkingAuth: false,
 
   signup: async ({
     name,
@@ -96,7 +96,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
   },
 
   refreshToken: async () => {
-    if (get().checkingAuth) return;
+    // if (get().checkingAuth) return;
 
     set({ checkingAuth: true });
 

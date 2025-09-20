@@ -9,22 +9,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ShoppingCart, User, Menu, Search, LogOut, Lock } from "lucide-react";
+import { ShoppingCart, User, Menu, LogOut, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useUserStore } from "@stores/useUserStore";
+import { useCartStore } from "@stores/useCartStore";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, logout, checkAuth, refreshToken } = useUserStore();
+  const { items, fetchCart } = useCartStore();
   const isAdmin = user ? user.isAdmin : false;
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) fetchCart();
+  }, [user, fetchCart]);
 
   const handleClick = () => {
     refreshToken();
@@ -145,43 +149,19 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isSearchOpen ? (
-            <div className="relative hidden md:block">
-              <Input
-                type="search"
-                placeholder="Buscar antiguidades..."
-                className="w-[200px] lg:w-[300px]"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 cursor-pointer"
-                onClick={() => setIsSearchOpen(false)}
-              >
-                <Search className="h-4 w-4" />
-                <span className="sr-only">Buscar</span>
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden md:flex cursor-pointer"
-              onClick={() => setIsSearchOpen(true)}
-            >
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Buscar</span>
-            </Button>
-          )}
-
           {/* cart button */}
           {user && (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/carrinho">
+            <Link href="/cart" className="relative">
+              <button className="relative inline-flex items-center p-2 rounded-md hover:bg-muted cursor-pointer">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="sr-only">Carrinho</span>
-              </Link>
-            </Button>
+              </button>
+
+              {items && items.length > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                  {items.length}
+                </span>
+              )}
+            </Link>
           )}
 
           {user ? (
