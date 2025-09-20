@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/category.route.js";
 import reviewsRoutes from "./routes/review.route.js";
 import favoriteRoutes from "./routes/favorite.route.js";
 import cartRoutes from "./routes/cart.route.js";
+import paymentRoutes from "./routes/payment.route.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/payments", paymentRoutes);
 
 const start = async () => {
   app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));

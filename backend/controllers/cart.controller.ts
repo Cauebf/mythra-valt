@@ -5,7 +5,6 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 export const getCart = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req?.user?.id;
-    console.log("userId: ", userId, "req.user: ", req.user);
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
     const cart = await prisma.cart.findUnique({

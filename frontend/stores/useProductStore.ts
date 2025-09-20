@@ -71,10 +71,12 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         loading: false,
       }));
       toast.success("Product created successfully");
+      return created;
     } catch (error) {
       set({ loading: false });
       const err = error as AxiosError<{ message?: string }>;
       toast.error(err.response?.data?.message || "Failed to create product");
+      return null;
     }
   },
 

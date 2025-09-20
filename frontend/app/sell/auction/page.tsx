@@ -178,7 +178,7 @@ export default function CreateAuctionPage() {
 
     if (created) {
       // redirect after small delay so user sees toast
-      // setTimeout(() => router.push("/perfil/leiloes?success=true"), 600);
+      setTimeout(() => router.push(`/auctions/${created.id}`), 600);
     }
   };
 

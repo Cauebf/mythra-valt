@@ -155,11 +155,18 @@ export default function SellProductPage() {
       provenance: history,
     };
 
-    await createProduct(payload);
-    // small delay to let store update and UX be nice
-    // setTimeout(() => {
-    //   router.push("/perfil/vendas?success=true");
-    // }, 600);
+    try {
+      const created = await createProduct(payload);
+      
+      if (created !== null && created !== undefined) {
+        // small delay to let store update and UX be nice
+        setTimeout(() => {
+          router.push(`/products/${created.id}`);
+        }, 600);
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+    }
   };
 
   return (

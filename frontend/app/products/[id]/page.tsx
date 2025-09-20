@@ -508,7 +508,7 @@ export default function ProductPage({
                 />
               </div>
 
-              <Button onClick={handleSubmitReview} className="cursor-pointer">
+              <Button onClick={handleSubmitReview} className="cursor-pointer" disabled={isSeller}>
                 Enviar avaliação
               </Button>
             </div>
