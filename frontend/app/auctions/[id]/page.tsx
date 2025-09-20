@@ -17,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gavel, Clock, User, Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import AuctionCard from "@/components/AuctionCard";
 import { useAuctionStore } from "@/stores/useAuctionStore";
 import { useCommentStore } from "@/stores/useCommentStore";
 import { useUserStore } from "@/stores/useUserStore";

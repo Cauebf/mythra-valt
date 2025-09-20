@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/db.js";
-import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export const getAllCategories = async (req: Request, res: Response) => {
   try {

@@ -28,8 +28,6 @@ import {
   CheckCircle2,
   Truck,
 } from "lucide-react";
-import AuctionCard from "@/components/AuctionCard";
-import ProductCard from "@/components/ProductCard";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -410,9 +408,9 @@ export default function ProfilePage() {
               <h2 className="text-xl font-medium mb-4">Vendas Ativas</h2>
               {sales.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {sales.slice(0, 3).map((product) => (
+                  {/* {sales.slice(0, 3).map((product) => (
                     <ProductCard key={product.id} product={product} />
-                  ))}
+                  ))} */}
                 </div>
               ) : (
                 <p className="text-muted-foreground mb-8">
@@ -423,9 +421,9 @@ export default function ProfilePage() {
               <h2 className="text-xl font-medium mb-4">Leilões Ativos</h2>
               {auctions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {auctions.slice(0, 3).map((auction) => (
+                  {/* {auctions.slice(0, 3).map((auction) => (
                     <AuctionCard key={auction.id} auction={auction} />
-                  ))}
+                  ))} */}
                 </div>
               ) : (
                 <p className="text-muted-foreground">
@@ -526,9 +524,9 @@ export default function ProfilePage() {
 
               {sales.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {sales.map((product) => (
+                  {/* {sales.map((product) => (
                     <ProductCard key={product.id} product={product} />
-                  ))}
+                  ))} */}
                 </div>
               ) : (
                 <p className="text-muted-foreground">
@@ -549,9 +547,9 @@ export default function ProfilePage() {
 
               {auctions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {auctions.map((auction) => (
+                  {/* {auctions.map((auction) => (
                     <AuctionCard key={auction.id} auction={auction} />
-                  ))}
+                  ))} */}
                 </div>
               ) : (
                 <p className="text-muted-foreground">
@@ -628,9 +626,9 @@ export default function ProfilePage() {
 
               {favorites.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {favorites.map((product) => (
+                  {/* {favorites.map((product) => (
                     <ProductCard key={product.id} product={product} />
-                  ))}
+                  ))} */}
                 </div>
               ) : (
                 <p className="text-muted-foreground">

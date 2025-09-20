@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { prisma } from "../lib/db.js";
 import { stripe } from "../lib/stripe.js";
-import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 export const createCheckoutSession = async (
   req: AuthenticatedRequest,
   res: Response

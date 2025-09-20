@@ -124,7 +124,6 @@ export default function AuctionsPage() {
         return true;
       })
       .sort((a, b) => {
-        const now = new Date();
         switch (sortBy) {
           case "ending-soon": {
             const aEnd = new Date(a.endTime).getTime();

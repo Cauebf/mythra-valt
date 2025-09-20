@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { prisma } from "../lib/db";
-import { Prisma } from "../lib/generated/prisma";
+import { prisma } from "../lib/db.js";
+import { Prisma } from "../lib/generated/prisma/index.js";
 
 export type AuthenticatedUser = Prisma.UserGetPayload<{
   select: {

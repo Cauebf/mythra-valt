@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { prisma } from "../lib/db";
-import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import type { Request, Response } from "express";
+import { prisma } from "../lib/db.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export const getCart = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -12,7 +12,7 @@ export const getCart = async (req: AuthenticatedRequest, res: Response) => {
       include: { items: { include: { product: true } } },
     });
 
-    const items = (cart?.items ?? []).map((it) => ({
+    const items = (cart?.items ?? []).map((it: any) => ({
       product: {
         id: it.product.id,
         title: it.product.title,

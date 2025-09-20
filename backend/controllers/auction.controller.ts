@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../lib/db.js";
 import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
-import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import { capitalizeWords } from "../lib/utils.js";
 import { Decimal } from "@prisma/client/runtime/library";
 

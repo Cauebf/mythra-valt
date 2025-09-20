@@ -1,4 +1,7 @@
-import { PrismaClient } from "../lib/generated/prisma";
+import { PrismaClient } from "./generated/prisma/index.js";
+import doentv from "dotenv";
+
+doentv.config();
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
