@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -26,9 +26,13 @@ import { useUserStore } from "@/stores/useUserStore";
 import toast from "react-hot-toast";
 import type { Product } from "@types";
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
 
   const { getProductById, products, fetchProductsByCategory } =
     useProductStore();

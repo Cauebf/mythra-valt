@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Share, Gavel, Clock, Star, User, Send } from "lucide-react";
+import { Gavel, Clock, User, Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AuctionCard from "@/components/AuctionCard";
+import { useAuctionStore } from "@/stores/useAuctionStore";
+import { useCommentStore } from "@/stores/useCommentStore";
+import { useUserStore } from "@/stores/useUserStore";
+import toast from "react-hot-toast";
 
 export default function AuctionPage({
   params,
@@ -25,246 +29,225 @@ export default function AuctionPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [bidAmount, setBidAmount] = useState("");
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<
-    {
-      id: string;
-      user: string;
-      avatar: string;
-      content: string;
-      timestamp: string;
-    }[]
-  >([
-    {
-      id: "1",
-      user: "Maria Silva",
-      avatar: "/placeholder-user.jpg",
-      content: "Este quadro tem certificado de autenticidade?",
-      timestamp: "2023-12-20T14:30:00",
-    },
-    {
-      id: "2",
-      user: "Antiquário Clássico",
-      avatar: "/placeholder-user.jpg",
-      content:
-        "Sim, o quadro possui certificado de autenticidade emitido pela Galeria Nacional de Arte em 2010.",
-      timestamp: "2023-12-20T14:45:00",
-    },
-    {
-      id: "3",
-      user: "João Pereira",
-      avatar: "/placeholder-user.jpg",
-      content: "Qual é o estado de conservação da moldura?",
-      timestamp: "2023-12-21T10:15:00",
-    },
-    {
-      id: "4",
-      user: "Antiquário Clássico",
-      avatar: "/placeholder-user.jpg",
-      content:
-        "A moldura está em excelente estado, com pequenos sinais de desgaste consistentes com a idade. Foi restaurada em 2015 por um especialista.",
-      timestamp: "2023-12-21T10:30:00",
-    },
-  ]);
+  const { fetchAuctionById, placeBid } = useAuctionStore();
+  const { comments, fetchCommentsByAuction, createCommentForAuction } =
+    useCommentStore();
+  const { user } = useUserStore();
 
-  // Dados simulados do leilão
-  const auction = {
-    id: id,
-    name: "Pintura a Óleo Século XIX - Paisagem Europeia",
-    currentBid: 5600,
-    nextMinimumBid: 5700,
-    startingBid: 3000,
-    endTime: "2023-12-31T23:59:59",
-    images: [
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-    ],
-    description:
-      "Pintura a óleo sobre tela representando uma paisagem rural europeia, atribuída ao círculo de artistas da Escola de Barbizon. A obra data de aproximadamente 1860 e apresenta uma cena bucólica com camponeses, árvores frondosas e um rio sereno ao entardecer. Assinatura parcialmente legível no canto inferior direito.",
-    category: "Arte",
-    dimensions: "70cm x 90cm",
-    condition: "Bom estado, com pequenas restaurações",
-    provenance: "Coleção particular francesa",
-    bids: [
-      { user: "Carlos M.", amount: 5600, time: "2023-12-20T18:45:00" },
-      { user: "Ana L.", amount: 5400, time: "2023-12-19T14:30:00" },
-      { user: "Roberto S.", amount: 5000, time: "2023-12-18T09:15:00" },
-      { user: "Juliana P.", amount: 4500, time: "2023-12-17T20:10:00" },
-      { user: "Marcos A.", amount: 4000, time: "2023-12-16T11:05:00" },
-      { user: "Fernanda C.", amount: 3500, time: "2023-12-15T16:30:00" },
-      { user: "Ricardo B.", amount: 3200, time: "2023-12-14T13:45:00" },
-      { user: "Luísa M.", amount: 3000, time: "2023-12-13T10:00:00" },
-    ],
-    seller: {
-      id: "seller123",
-      name: "Antiquário Clássico",
-      rating: 4.8,
-      auctions: 42,
-    },
-    watchers: 24,
-  };
-
-  // Leilões relacionados simulados
-  const relatedAuctions = [
-    {
-      id: "2",
-      name: "Escultura em Bronze Art Nouveau",
-      currentBid: 3200,
-      endTime: "2023-12-28T18:30:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 6,
-    },
-    {
-      id: "3",
-      name: "Conjunto de Gravuras Século XVIII",
-      currentBid: 1800,
-      endTime: "2023-12-29T20:15:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 4,
-    },
-    {
-      id: "4",
-      name: "Miniatura Pintada à Mão",
-      currentBid: 950,
-      endTime: "2023-12-30T15:45:00",
-      image: "/placeholder.svg?height=300&width=300",
-      bids: 3,
-    },
-  ];
-
-  const [timeLeft, setTimeLeft] = useState("");
+  const [auction, setAuction] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [bidAmount, setBidAmount] = useState<string>("");
+  const [commentText, setCommentText] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const difference =
-        new Date(auction.endTime).getTime() - new Date().getTime();
-
-      if (difference <= 0) {
-        setTimeLeft("Leilão encerrado");
-        return;
+    (async () => {
+      setLoading(true);
+      try {
+        const a = await fetchAuctionById(id);
+        setAuction(a);
+        await fetchCommentsByAuction(id);
+      } catch (err) {
+        console.error("Failed load auction", err);
+        toast.error("Erro ao carregar leilão");
+      } finally {
+        setLoading(false);
       }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+  const isSeller = useMemo(() => {
+    if (!user || !auction) return false;
+    return user.id === auction.ownerId;
+  }, [user, auction]);
 
-      if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-      } else {
-        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-      }
-    };
+  const isEnded = useMemo(() => {
+    if (!auction) return false;
+    return new Date() > new Date(auction.endTime);
+  }, [auction]);
 
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
+  const nextMinimumBid = useMemo(() => {
+    if (!auction) return 0;
+    // prefer highest bid + step; store may include bids sorted
+    const highest =
+      auction.bids && auction.bids.length > 0
+        ? Number(auction.bids[0].amount)
+        : Number(auction.startingBid ?? 0);
+    const step = Math.ceil((highest ?? 0) * 0.02) || 100; // simple step (2% or fallback)
+    return highest > 0 ? highest + step : Number(auction.startingBid ?? 0);
+  }, [auction]);
 
-    return () => clearInterval(timer);
-  }, [auction.endTime]);
+  useEffect(() => {
+    // sync placeholder nextMinimumBid if auction provides.
+    if (auction?.nextMinimumBid) {
+      // no-op — we use computed above
+    }
+  }, [auction]);
 
-  const handleBid = () => {
-    if (!bidAmount) return;
+  const calculateTimeLeft = () => {
+    if (!auction) return "—";
+    const diff = new Date(auction.endTime).getTime() - new Date().getTime();
+    if (diff <= 0) return "Leilão encerrado";
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
 
+  // realtime-ish timer
+  const [timeLeft, setTimeLeft] = useState<string>(calculateTimeLeft());
+  useEffect(() => {
+    const t = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auction]);
+
+  const handleBid = async () => {
+    if (!auction) return;
+    if (isSeller) {
+      toast.error("Você é o vendedor deste leilão e não pode dar lances.");
+      return;
+    }
+    if (isEnded) {
+      toast.error("Leilão encerrado.");
+      return;
+    }
     const amount = Number(bidAmount);
-    if (amount < auction.nextMinimumBid) return;
+    if (!amount || isNaN(amount)) {
+      toast.error("Informe um valor válido");
+      return;
+    }
+    if (amount < nextMinimumBid) {
+      toast.error(
+        `O lance mínimo é ${new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(nextMinimumBid)}`
+      );
+      return;
+    }
 
-    // Aqui seria implementada a lógica para enviar o lance ao servidor
-    alert(`Lance de R$ ${amount.toFixed(2)} enviado com sucesso!`);
-    setBidAmount("");
+    try {
+      console.log("bid amount", amount);
+      // const bid = await placeBid(auction.id, amount);
+      // if (bid) {
+      //   toast.success("Lance enviado");
+      //   setBidAmount("");
+      //   // refresh auction
+      //   const refreshed = await fetchAuctionById(id);
+      //   setAuction(refreshed);
+      // }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar lance");
+    }
   };
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-
-    const newMessage = {
-      id: `msg-${Date.now()}`,
-      user: "Você",
-      avatar: "/placeholder-user.jpg",
-      content: message,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setMessage("");
-
-    // Simulação de resposta do vendedor
-    setTimeout(() => {
-      const response = {
-        id: `msg-${Date.now() + 1}`,
-        user: auction.seller.name,
-        avatar: "/placeholder-user.jpg",
-        content: "Obrigado pelo seu contato! Responderei em breve.",
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, response]);
-    }, 2000);
+  const handleSendComment = async () => {
+    if (!commentText.trim()) return;
+    try {
+      const c = await createCommentForAuction(id, commentText.trim());
+      if (c) {
+        setCommentText("");
+        toast.success("Comentário enviado");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar comentário");
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
+  const formatDate = (iso?: string) =>
+    iso
+      ? new Intl.DateTimeFormat("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(iso))
+      : "";
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-96 bg-gray-100 rounded" />
+          <div className="h-6 bg-gray-100 rounded w-64" />
+          <div className="h-6 bg-gray-100 rounded w-40" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!auction) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p>Leilão não encontrado.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Início</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/auctions">Leilões</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href={`/auctions?category=${auction.category}`}>
-              {auction.category}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink>{auction.name}</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Início</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/auctions">Leilões</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href={`/auctions?category=${
+                  auction.category?.name ?? auction.categoryId
+                }`}
+              >
+                {auction.category?.name ?? auction.categoryId ?? "Categoria"}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>{auction.title ?? auction.name}</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {/* Imagens do leilão */}
+        {/* images */}
         <div className="space-y-4">
-          <div className="relative h-[400px] md:h-[500px] rounded-lg overflow-hidden border">
+          <div className="relative h-[400px] md:h-[520px] rounded-lg overflow-hidden border">
             <Image
-              src={auction.images[selectedImage] || "/placeholder.svg"}
-              alt={auction.name}
+              src={auction.images?.[selectedImage] ?? "/placeholder.svg"}
+              alt={auction.title ?? auction.name}
               fill
               className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {auction.images.map((image, index) => (
+
+          <div className="flex gap-2 pb-2">
+            {(auction.images ?? []).map((img: string, i: number) => (
               <button
-                key={index}
-                onClick={() => setSelectedImage(index)}
-                className={`relative w-20 h-20 border rounded ${
-                  selectedImage === index
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-muted hover:border-primary/50"
+                key={i}
+                onClick={() => setSelectedImage(i)}
+                className={`relative w-20 h-20 rounded cursor-pointer overflow-hidden border ${
+                  selectedImage === i
+                    ? "ring-2 ring-primary"
+                    : "border-2 hover:border-primary/80"
                 }`}
               >
                 <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`${auction.name} - imagem ${index + 1}`}
+                  src={img}
+                  alt={`img ${i}`}
                   fill
                   className="object-cover"
                 />
@@ -273,7 +256,7 @@ export default function AuctionPage({
           </div>
         </div>
 
-        {/* Informações do leilão */}
+        {/* details + bid box */}
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Badge
@@ -282,23 +265,32 @@ export default function AuctionPage({
             >
               Leilão
             </Badge>
-            <Badge variant="outline">{auction.category}</Badge>
+            {auction.category?.name && (
+              <Badge variant="outline">{auction.category.name}</Badge>
+            )}
           </div>
+
           <h1 className="text-2xl md:text-3xl font-serif font-bold mb-2">
-            {auction.name}
+            {auction.title ?? auction.name}
           </h1>
-          <div className="flex items-center gap-1 mb-4">
-            <Link
-              href={`/vendedor/${auction.seller.id}`}
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              Vendido por {auction.seller.name}
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <div className="flex items-center">
-              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              <span className="text-sm ml-1">{auction.seller.rating}</span>
-            </div>
+
+          <div className="flex items-center gap-2 mb-4">
+            {auction.owner && (
+              <Link
+                href={`/vendedor/${auction.owner.id}`}
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Vendido por {auction.owner.name}
+              </Link>
+            )}
+            {!auction.owner && auction.ownerId && (
+              <Link
+                href={`/vendedor/${auction.ownerId}`}
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Vendido por {auction.ownerId}
+              </Link>
+            )}
           </div>
 
           <div className="bg-muted p-4 rounded-lg mb-6">
@@ -309,7 +301,11 @@ export default function AuctionPage({
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
-                  }).format(auction.currentBid)}
+                  }).format(
+                    Number(
+                      auction.bids?.[0]?.amount ?? auction.startingBid ?? 0
+                    )
+                  )}
                 </p>
               </div>
               <div className="text-right">
@@ -320,38 +316,48 @@ export default function AuctionPage({
                 </div>
               </div>
             </div>
+
             <p className="text-sm text-muted-foreground mb-4">
-              {auction.bids.length} lances • {auction.watchers} observando
+              {(auction.bids ?? []).length} lances
             </p>
+
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <Input
                   type="number"
-                  placeholder={`Lance mínimo: R$ ${auction.nextMinimumBid}`}
+                  placeholder={`Lance mínimo: ${new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(nextMinimumBid)}`}
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
                   className="flex-1"
+                  disabled={isSeller || isEnded}
                 />
                 <Button
                   onClick={handleBid}
+                  className="cursor-pointer"
                   disabled={
-                    !bidAmount || Number(bidAmount) < auction.nextMinimumBid
+                    isSeller ||
+                    isEnded ||
+                    Number(bidAmount) < nextMinimumBid ||
+                    !bidAmount
                   }
                 >
                   <Gavel className="mr-2 h-5 w-5" />
                   Dar Lance
                 </Button>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1">
-                  <Heart className="mr-2 h-5 w-5" />
-                  Observar
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <Share className="mr-2 h-5 w-5" />
-                  Compartilhar
-                </Button>
-              </div>
+              {isSeller && (
+                <p className="text-xs text-muted-foreground">
+                  Você é o vendedor deste leilão — não é permitido dar lances.
+                </p>
+              )}
+              {isEnded && (
+                <p className="text-xs text-muted-foreground">
+                  Leilão encerrado.
+                </p>
+              )}
             </div>
           </div>
 
@@ -366,19 +372,22 @@ export default function AuctionPage({
             <div>
               <h3 className="text-sm font-medium">Dimensões</h3>
               <p className="text-sm text-muted-foreground">
-                {auction.dimensions}
+                {auction.dimensions ?? "—"}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium">Condição</h3>
               <p className="text-sm text-muted-foreground">
-                {auction.condition}
+                {auction.condition
+                  ? auction.condition.charAt(0).toUpperCase() +
+                    auction.condition.slice(1).toLowerCase()
+                  : "—"}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium">Procedência</h3>
               <p className="text-sm text-muted-foreground">
-                {auction.provenance}
+                {auction.provenance ?? "—"}
               </p>
             </div>
             <div>
@@ -387,142 +396,146 @@ export default function AuctionPage({
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",
                   currency: "BRL",
-                }).format(auction.startingBid)}
+                }).format(Number(auction.startingBid ?? 0))}
               </p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Tabs: Bids + Chat */}
       <Tabs defaultValue="bids" className="mb-12">
         <TabsList className="mb-4">
-          <TabsTrigger value="bids">Histórico de Lances</TabsTrigger>
-          <TabsTrigger value="chat">Chat com Vendedor</TabsTrigger>
-          <TabsTrigger value="shipping">Envio e Pagamento</TabsTrigger>
+          <TabsTrigger value="bids" className="cursor-pointer">
+            Histórico de Lances
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="cursor-pointer">
+            Chat com Vendedor
+          </TabsTrigger>
         </TabsList>
+
         <TabsContent value="bids" className="space-y-4">
           <h2 className="text-xl font-medium mb-4">Histórico de Lances</h2>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="text-left p-3 font-medium">Usuário</th>
-                  <th className="text-left p-3 font-medium">Lance</th>
-                  <th className="text-left p-3 font-medium">Data/Hora</th>
-                </tr>
-              </thead>
-              <tbody>
-                {auction.bids.map((bid, index) => (
-                  <tr key={index} className="border-t">
-                    <td className="p-3">{bid.user}</td>
-                    <td className="p-3">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(bid.amount)}
-                    </td>
-                    <td className="p-3">{formatDate(bid.time)}</td>
+
+          {auction.bids && auction.bids.length > 0 ? (
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="text-left p-3 font-medium">Usuário</th>
+                    <th className="text-left p-3 font-medium">Lance</th>
+                    <th className="text-left p-3 font-medium">Data/Hora</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {auction.bids.map((b: any, idx: number) => (
+                    <tr key={idx} className="border-t">
+                      <td className="p-3">
+                        {b.user?.name ?? b.user ?? "Anônimo"}
+                      </td>
+                      <td className="p-3">
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        }).format(Number(b.amount))}
+                      </td>
+                      <td className="p-3">
+                        {formatDate(b.createdAt ?? b.time)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-muted-foreground text-sm border p-4 rounded-lg">
+              Nenhum lance ainda. Seja o primeiro a dar um lance!
+            </div>
+          )}
         </TabsContent>
+
         <TabsContent value="chat">
           <div className="border rounded-lg overflow-hidden">
             <div className="bg-muted p-3 border-b">
               <h2 className="font-medium">Chat com o Vendedor</h2>
             </div>
-            <ScrollArea className="h-[400px] p-4">
-              {messages.map((msg) => (
-                <div key={msg.id} className="mb-4 flex gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={msg.avatar || "/placeholder.svg"}
-                      alt={msg.user}
-                    />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{msg.user}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(msg.timestamp)}
-                      </span>
+
+            <ScrollArea className="h-[380px] p-4">
+              {/* comments from comment store */}
+              {(comments ?? []).map((c) => {
+                const isFromSeller =
+                  auction.ownerId && c.userId === auction.ownerId;
+                return (
+                  <div
+                    key={c.id}
+                    className={`mb-4 flex gap-3 ${
+                      isFromSeller ? "bg-amber-50 p-3 rounded-md" : ""
+                    }`}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={c.authorAvatar ?? "/placeholder-user.jpg"}
+                        alt={c.author ?? "Usuário"}
+                      />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">
+                          {c.author ?? "Usuário"}
+                        </span>
+                        {isFromSeller && (
+                          <Badge className="text-[10px] bg-amber-500 text-white">
+                            Vendedor
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(c.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm mt-1">{c.content}</p>
                     </div>
-                    <p className="text-sm mt-1">{msg.content}</p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </ScrollArea>
+
             <div className="p-3 border-t flex gap-2">
               <Input
-                placeholder="Envie uma mensagem ao vendedor..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                placeholder="Envie uma mensagem..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
+                disabled={!user}
               />
-              <Button size="icon" onClick={handleSendMessage}>
+              <Button
+                size="icon"
+                onClick={handleSendComment}
+                disabled={!user || !commentText.trim()}
+                className="cursor-pointer"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="shipping">
-          <h2 className="text-xl font-medium mb-4">
-            Informações de Envio e Pagamento
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Envio</h3>
-              <p className="text-sm text-muted-foreground">
-                O vendedor é responsável pelo envio seguro do item. O custo de
-                envio será calculado após o encerramento do leilão com base no
-                endereço do comprador. Itens frágeis ou de grande porte podem
-                exigir serviços de transporte especializados.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Pagamento</h3>
-              <p className="text-sm text-muted-foreground">
-                Após o encerramento do leilão, o vencedor receberá instruções
-                para pagamento. Aceitamos cartão de crédito, transferência
-                bancária e PIX. O pagamento deve ser realizado em até 3 dias
-                úteis após o término do leilão.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Taxas</h3>
-              <p className="text-sm text-muted-foreground">
-                Uma taxa de serviço de 5% será adicionada ao valor final do
-                lance vencedor. Esta taxa cobre os custos de operação da
-                plataforma e garantias ao comprador.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Garantias</h3>
-              <p className="text-sm text-muted-foreground">
-                Todos os itens leiloados em nossa plataforma passam por
-                verificação de autenticidade. Oferecemos garantia de devolução
-                em até 14 dias caso o item recebido não corresponda à descrição.
-              </p>
-            </div>
-          </div>
-        </TabsContent>
       </Tabs>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-serif font-bold mb-6">
-          Leilões Relacionados
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-          {relatedAuctions.map((auction) => (
-            <AuctionCard key={auction.id} auction={auction} />
-          ))}
-        </div>
-      </section>
+      {/* Related auctions */}
+      {/* {related.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-2xl font-serif font-bold mb-6">
+            Leilões Relacionados
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+            {related.map((a) => (
+              <AuctionCard key={a.id} auction={a} />
+            ))}
+          </div>
+        </section>
+      )} */}
     </div>
   );
 }

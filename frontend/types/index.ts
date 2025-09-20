@@ -77,6 +77,7 @@ export type Product = {
   createdAt?: string;
   updatedAt?: string;
   category?: Category | null;
+  owner?: User | null;
   avgRating?: number;
   _count?: {
     reviews?: number;
@@ -107,7 +108,7 @@ export type Bid = {
   createdAt: string;
   auctionId: string;
   userId: string;
-  bidder?: { id: string; name?: string; email?: string } | null;
+  user?: { id: string; name?: string; email?: string } | null;
 };
 
 export type Auction = {
@@ -128,6 +129,8 @@ export type Auction = {
   endTime: string;
   ownerId?: string;
   categoryId: string;
+  user?: User | null;
+  category?: Category | null;
   bids?: Bid[];
   comments?: any[];
   createdAt?: string;
