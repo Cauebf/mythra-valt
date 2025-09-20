@@ -1,6 +1,7 @@
 "use client";
 
-import React, { use, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -21,16 +22,13 @@ import { useReviewStore } from "@/stores/useReviewStore";
 import { useCartStore } from "@/stores/useCartStore";
 import { useFavoriteStore } from "@/stores/useFavoriteStore";
 import { useCategoryStore } from "@/stores/useCategoryStore";
+import { useUserStore } from "@/stores/useUserStore";
 import toast from "react-hot-toast";
 import type { Product } from "@types";
 
-export default function ProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function ProductPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { id } = use(params);
+  const { id } = params;
 
   const { getProductById, products, fetchProductsByCategory } =
     useProductStore();
@@ -39,6 +37,7 @@ export default function ProductPage({
   const { toggleFavorite, fetchUserFavorites, isFavoriteForProduct } =
     useFavoriteStore();
   const { fetchAllCategories } = useCategoryStore();
+  const { user } = useUserStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,6 +94,11 @@ export default function ProductPage({
       : 0;
   }, [reviews, product]);
 
+  const isSeller = useMemo(() => {
+    if (!product || !user) return false;
+    return user.id === product.ownerId || user.id === product.owner?.id;
+  }, [product, user]);
+
   const increment = () => {
     if (!product) return;
     if (quantity < (product.quantity ?? 1)) setQuantity((q) => q + 1);
@@ -105,11 +109,17 @@ export default function ProductPage({
 
   const handleAddToCart = async () => {
     if (!product || !product.id) return;
+    if (isSeller) {
+      toast.error(
+        "Você é o vendedor — não é possível adicionar seu próprio produto ao carrinho."
+      );
+      return;
+    }
     setAddingToCart(true);
     try {
       await addToCart(product.id, quantity);
       toast.success("Adicionado ao carrinho");
-      // router.push("/cart");
+      router.push("/cart");
     } catch (err) {
       console.error(err);
       toast.error("Erro ao adicionar ao carrinho");
@@ -134,6 +144,10 @@ export default function ProductPage({
 
   const handleSubmitReview = async () => {
     if (!product || !product.id) return;
+    if (isSeller) {
+      toast.error("Vendedores não podem avaliar seu próprio produto.");
+      return;
+    }
     if (userRating === 0 || !userComment.trim()) {
       toast.error("Selecione avaliação e escreva um comentário");
       return;
@@ -262,6 +276,15 @@ export default function ProductPage({
             </span>
           </div>
 
+          <div className="flex items-center gap-2 mb-2">
+            <Link
+              href={`/user/${product.ownerId}`}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Vendido por {product.owner?.name ?? "Vendedor"}
+            </Link>
+          </div>
+
           <div className="mb-6">
             <p className="text-3xl font-bold mb-1">
               {new Intl.NumberFormat("pt-BR", {
@@ -354,10 +377,14 @@ export default function ProductPage({
                 className="flex-1 cursor-pointer"
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={addingToCart}
+                disabled={addingToCart || isSeller}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {addingToCart ? "Adicionando..." : "Adicionar ao Carrinho"}
+                {isSeller
+                  ? "Você é o vendedor"
+                  : addingToCart
+                  ? "Adicionando..."
+                  : "Adicionar ao Carrinho"}
               </Button>
 
               <Button
@@ -468,7 +495,12 @@ export default function ProductPage({
                   value={userComment}
                   onChange={(e) => setUserComment(e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="Compartilhe sua experiência..."
+                  placeholder={
+                    isSeller
+                      ? "Vendedores não podem avaliar seu próprio produto."
+                      : "Compartilhe sua experiência..."
+                  }
+                  disabled={isSeller}
                 />
               </div>
 
