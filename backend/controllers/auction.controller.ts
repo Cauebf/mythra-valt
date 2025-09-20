@@ -4,6 +4,7 @@ import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import { capitalizeWords } from "../lib/utils.js";
+import { Decimal } from "@prisma/client/runtime/library";
 
 async function updateActiveAuctionsCache() {
   try {
@@ -77,7 +78,12 @@ export const getAuctionById = async (req: Request, res: Response) => {
     const auction = await prisma.auction.findUnique({
       where: { id },
       include: {
-        bids: { orderBy: { amount: "desc" } },
+        bids: {
+          orderBy: { amount: "desc" },
+          include: {
+            bidder: { select: { id: true, name: true, email: true } },
+          },
+        },
         category: true,
         owner: { select: { id: true, name: true, email: true } },
         comments: true,
@@ -287,7 +293,7 @@ export const placeBid = async (req: AuthenticatedRequest, res: Response) => {
     // determine current highest bid
     const highestBid =
       auction.bids && auction.bids.length > 0 ? auction.bids[0] : null;
-    const numericAmount = amount;
+    const numericAmount = new Decimal(amount);
 
     // Validate amount > highestBid.amount (if present) or >= startingBid
     if (highestBid) {
@@ -349,6 +355,7 @@ export const createComment = async (
 ) => {
   try {
     const { auctionId } = req.params;
+    console.log(auctionId)
     const { content } = req.body;
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });

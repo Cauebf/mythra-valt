@@ -131,21 +131,19 @@ export default function AuctionPage({
     }
 
     try {
-      console.log("bid amount", amount);
-      // const bid = await placeBid(auction.id, amount);
-      // if (bid) {
-      //   toast.success("Lance enviado");
-      //   setBidAmount("");
-      //   // refresh auction
-      //   const refreshed = await fetchAuctionById(id);
-      //   setAuction(refreshed);
-      // }
+      const bid = await placeBid(auction.id, amount);
+      if (bid) {
+        setBidAmount("");
+        // refresh auction
+        const refreshed = await fetchAuctionById(id);
+        setAuction(refreshed);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Erro ao enviar lance");
     }
   };
-
+console.log(auction)
   const handleSendComment = async () => {
     if (!commentText.trim()) return;
     try {
@@ -431,7 +429,7 @@ export default function AuctionPage({
                   {auction.bids.map((b: any, idx: number) => (
                     <tr key={idx} className="border-t">
                       <td className="p-3">
-                        {b.user?.name ?? b.user ?? "Anônimo"}
+                        {b.bidder?.name ?? b.bidder ?? "Anônimo"}
                       </td>
                       <td className="p-3">
                         {new Intl.NumberFormat("pt-BR", {

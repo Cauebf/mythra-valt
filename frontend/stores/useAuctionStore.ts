@@ -184,7 +184,7 @@ export const useAuctionStore = create<AuctionStore>((set, get) => ({
         return { auctions, activeAuctions, loading: false };
       });
 
-      toast.success("Lance registrado");
+      toast.success("Lance enviado");
       return bid;
     } catch (error) {
       set({ loading: false });
