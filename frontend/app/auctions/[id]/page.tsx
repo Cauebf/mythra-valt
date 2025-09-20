@@ -143,7 +143,7 @@ export default function AuctionPage({
       toast.error("Erro ao enviar lance");
     }
   };
-console.log(auction)
+
   const handleSendComment = async () => {
     if (!commentText.trim()) return;
     try {

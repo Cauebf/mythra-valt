@@ -154,3 +154,22 @@ export const updateCartQuantity = async (
     return res.status(500).json({ message: "Erro ao atualizar quantidade" });
   }
 };
+
+export const clearCart = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const cart = await prisma.cart.findUnique({ where: { userId } });
+    if (!cart)
+      return res.status(400).json({ message: "Carrinho não encontrado" });
+
+    // Apaga todos os itens do carrinho
+    await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+    return res.json({ message: "Carrinho limpo com sucesso" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erro ao limpar carrinho" });
+  }
+};

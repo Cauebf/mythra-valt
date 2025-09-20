@@ -122,11 +122,9 @@ export default function ProductPage({
     setAddingToCart(true);
     try {
       await addToCart(product.id, quantity);
-      toast.success("Adicionado ao carrinho");
       router.push("/cart");
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao adicionar ao carrinho");
     } finally {
       setAddingToCart(false);
     }
@@ -508,7 +506,11 @@ export default function ProductPage({
                 />
               </div>
 
-              <Button onClick={handleSubmitReview} className="cursor-pointer" disabled={isSeller}>
+              <Button
+                onClick={handleSubmitReview}
+                className="cursor-pointer"
+                disabled={isSeller}
+              >
                 Enviar avaliação
               </Button>
             </div>

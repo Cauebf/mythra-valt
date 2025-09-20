@@ -13,39 +13,44 @@ export type CartProduct = {
 type CartState = {
   items: CartProduct[];
   loading: boolean;
+  pendingIds: string[]; // ids que estão em atualização (para spinner por-item)
+  subtotal: number;
+  _recalcSubtotal: () => void;
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   clearCartLocal: () => void;
-  subtotal: number;
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   loading: false,
+  pendingIds: [],
   subtotal: 0,
+
+  // calcula subtotal com base no estado atual
+  _recalcSubtotal: () => {
+    const items = get().items;
+    const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
+    set({ subtotal });
+  },
 
   fetchCart: async () => {
     set({ loading: true });
     try {
       const res = await axios.get("/cart");
-      // Expect res.data = { items: [ { product: { ... }, quantity } ] } OR array
       const payload = res.data.items ?? res.data;
-      const items = payload.map((it: any) => ({
+      const items: CartProduct[] = (payload || []).map((it: any) => ({
         id: it.product.id ?? it.productId ?? it.id,
         title: it.product.title ?? it.product.name ?? "Item",
         price: Number(it.product.price ?? it.price ?? 0),
-        images: it.product.images ?? it.product.image ? [it.product.image] : [],
+        images: it.product?.images ?? [],
         quantity: it.quantity ?? it.qty ?? 1,
       }));
       set({ items, loading: false });
-      // update subtotal
-      const subtotal = items.reduce(
-        (s: number, it: any) => s + it.price * it.quantity,
-        0
-      );
-      set({ subtotal });
+      get()._recalcSubtotal();
     } catch (err) {
       set({ loading: false, items: [] });
       toast.error("Falha ao carregar carrinho");
@@ -53,47 +58,116 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   addToCart: async (productId: string, quantity = 1) => {
-    set({ loading: true });
+    // Otimista: se o item existe incrementa localmente, senão cria localmente com dados mínimos.
+    const prev = get().items;
+    const existing = prev.find((i) => i.id === productId);
+    if (existing) {
+      set({
+        items: prev.map((i) =>
+          i.id === productId ? { ...i, quantity: i.quantity + quantity } : i
+        ),
+      });
+    } else {
+      // criar placeholder — idealmente você teria dados do produto no frontend
+      const newItem: CartProduct = {
+        id: productId,
+        title: "Carregando título...",
+        price: 0,
+        images: [],
+        quantity,
+      };
+      set({ items: [...prev, newItem] });
+    }
+    get()._recalcSubtotal();
+
     try {
       await axios.post("/cart", { productId, quantity });
-      // refresh
+      // refresh para garantir dados consistentes (nome, preço, imagens)
       await get().fetchCart();
       toast.success("Adicionado ao carrinho");
     } catch (err: any) {
+      // rollback
+      set({ items: prev });
+      get()._recalcSubtotal();
       toast.error(
         err?.response?.data?.message || "Falha ao adicionar ao carrinho"
       );
-    } finally {
-      set({ loading: false });
+    }
+  },
+
+  clearCart: async () => {
+    try {
+      await axios.delete("/cart");
+      get().fetchCart();
+      get().clearCartLocal();
+      toast.success("Carrinho limpo com sucesso");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Falha ao limpar carrinho");
     }
   },
 
   removeFromCart: async (productId: string) => {
-    set({ loading: true });
+    const prev = get().items;
+    // optimistic remove
+    set({
+      items: prev.filter((i) => i.id !== productId),
+      pendingIds: [...get().pendingIds, productId],
+    });
+    get()._recalcSubtotal();
+
     try {
       await axios.delete(`/cart/${encodeURIComponent(productId)}`);
-      await get().fetchCart();
+      // success -> remove pendingId
+      set({ pendingIds: get().pendingIds.filter((id) => id !== productId) });
       toast.success("Removido do carrinho");
     } catch (err: any) {
+      // rollback
+      set({
+        items: prev,
+        pendingIds: get().pendingIds.filter((id) => id !== productId),
+      });
+      get()._recalcSubtotal();
       toast.error(
         err?.response?.data?.message || "Falha ao remover do carrinho"
       );
-    } finally {
-      set({ loading: false });
     }
   },
 
-  updateQuantity: async (productId: string, quantity: number) => {
-    set({ loading: true });
+  updateQuantity: async (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      // delegate to remove
+      return get().removeFromCart(productId);
+    }
+
+    const prev = get().items;
+    const target = prev.find((i) => i.id === productId);
+    if (!target) return;
+
+    // optimistic update local
+    set({
+      items: prev.map((i) =>
+        i.id === productId ? { ...i, quantity: newQuantity } : i
+      ),
+      pendingIds: [...get().pendingIds, productId],
+    });
+    get()._recalcSubtotal();
+
     try {
-      await axios.put(`/cart/${encodeURIComponent(productId)}`, { quantity });
-      await get().fetchCart();
+      await axios.put(`/cart/${encodeURIComponent(productId)}`, {
+        quantity: newQuantity,
+      });
+      // success -> remove pending
+      set({ pendingIds: get().pendingIds.filter((id) => id !== productId) });
     } catch (err: any) {
+      // rollback
+      set({
+        items: prev,
+        pendingIds: get().pendingIds.filter((id) => id !== productId),
+      });
+      get()._recalcSubtotal();
       toast.error(
         err?.response?.data?.message || "Falha ao atualizar quantidade"
       );
-    } finally {
-      set({ loading: false });
     }
   },
 
