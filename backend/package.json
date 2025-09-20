@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "dev": "tsx watch server.ts",
-    "build": "npm run generate && tsc && npm run copy-prisma",
+    "build": "npm install && npm run generate && tsc && npm run copy-prisma",
     "generate": "prisma generate",
     "copy-prisma": "cpx \"lib/generated/prisma/**/*\" dist/lib/generated/prisma",
     "start": "node dist/server.js"
