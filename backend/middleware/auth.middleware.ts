@@ -21,8 +21,10 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
   };
 }>;
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest<Body = any, Params = any, Query = any>
+  extends Request<Params, any, Body, Query> {
   user?: AuthenticatedUser;
+  cookies: Record<string, string>;
 }
 
 // Middleware to check if user is authenticated
