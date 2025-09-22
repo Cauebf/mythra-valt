@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +11,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Package, Gavel, ArrowRight } from "lucide-react";
+import { useUserStore } from "@stores/useUserStore";
+import { useRouter } from "next/navigation";
 
 export default function SellPage() {
+  const { user } = useUserStore();
+  const router = useRouter();
+
+  if (!user) {
+    router.push("/auth/login");
+    return null;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">

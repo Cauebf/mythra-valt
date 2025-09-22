@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/useCartStore";
 
 import axios from "@/lib/axios";
@@ -10,15 +11,22 @@ import { loadStripe } from "@stripe/stripe-js";
 import toast from "react-hot-toast";
 import { formatCurrency } from "@lib/utils";
 import CartItem from "@components/CartItem";
+import { useUserStore } from "@stores/useUserStore";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
 export default function CartPage() {
-  const { items, fetchCart, subtotal, clearCart } = useCartStore();
-
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const { items, fetchCart, subtotal, clearCart } = useCartStore();
+  const { user } = useUserStore();
+  const router = useRouter();
+
+  if (!user) {
+    router.push("/auth/login");
+    return null;
+  }
 
   useEffect(() => {
     fetchCart();
