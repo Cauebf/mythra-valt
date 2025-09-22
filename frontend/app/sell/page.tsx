@@ -20,7 +20,6 @@ export default function SellPage() {
 
   if (!user) {
     router.push("/auth/login");
-    return null;
   }
 
   return (

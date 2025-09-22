@@ -25,7 +25,6 @@ export default function CartPage() {
 
   if (!user) {
     router.push("/auth/login");
-    return null;
   }
 
   useEffect(() => {
