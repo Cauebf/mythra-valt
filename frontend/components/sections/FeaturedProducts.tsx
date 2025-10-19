@@ -1,6 +1,19 @@
+"use client";
+
+import ProductCard from "@components/ProductCard";
+import { useEffect } from "react";
+import { useProductStore } from "@stores/useProductStore";
 import Link from "next/link";
+import { Product } from "@types";
 
 export default function FeaturedProductsSection() {
+  const { loading, featuredProducts, fetchFeaturedProducts } =
+    useProductStore();
+
+  useEffect(() => {
+    fetchFeaturedProducts(8);
+  }, [fetchFeaturedProducts]);
+
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -17,11 +30,21 @@ export default function FeaturedProductsSection() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-          {/* {featuredProducts.map((product) => (
-            <div key={product.id} className="h-full">
-              <ProductCard product={product} />
+          {loading ? (
+            <div className="col-span-full text-center text-lg text-gray-600">
+              Carregando...
             </div>
-          ))} */}
+          ) : featuredProducts && featuredProducts.length > 0 ? (
+            featuredProducts.map((product: Product) => (
+              <div key={product.id} className="h-full">
+                <ProductCard product={product} />
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center text-lg text-gray-600">
+              Nenhum produto encontrado
+            </div>
+          )}
         </div>
       </div>
     </section>

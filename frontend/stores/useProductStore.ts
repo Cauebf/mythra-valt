@@ -6,6 +6,7 @@ import { Product, ProductStore } from "@types";
 
 export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
+  featuredProducts: [],
   loading: false,
 
   setProducts: (products: Product[]) => set({ products }),
@@ -39,23 +40,17 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
   },
 
-  fetchFeaturedProducts: async () => {
+  fetchFeaturedProducts: async (limit = 8) => {
     set({ loading: true });
     try {
-      // controller returns either JSON array or { message } depending on your implementation
-      const res = await axios.get("/products/featured");
-      // if controller returns { products: [...] } adjust accordingly
-      const payload = res.data;
-      // handle both cases: array or { products: [...] }
-      const products: Product[] = Array.isArray(payload)
-        ? payload
-        : payload.products ?? payload;
-      set({ products, loading: false });
+      const res = await axios.get(`/products/featured?limit=${limit}`);
+      const payload = res.data.products ?? res.data;
+      set({ featuredProducts: payload, loading: false });
     } catch (error) {
       set({ loading: false });
       const err = error as AxiosError<{ message?: string }>;
       toast.error(
-        err.response?.data?.message || "Failed to fetch featured products"
+        err.response?.data?.message || "Falha ao buscar produtos em destaque"
       );
     }
   },
@@ -94,24 +89,6 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       set({ loading: false });
       const err = error as AxiosError<{ message?: string }>;
       toast.error(err.response?.data?.message || "Failed to delete product");
-    }
-  },
-
-  toggleFeaturedProduct: async (productId: string) => {
-    set({ loading: true });
-    try {
-      const res = await axios.patch(`/products/${productId}`);
-      const updated = res.data.product;
-      set((state) => ({
-        products: state.products.map((p) =>
-          p.id === productId ? { ...p, isFeatured: updated.isFeatured } : p
-        ),
-        loading: false,
-      }));
-    } catch (error) {
-      set({ loading: false });
-      const err = error as AxiosError<{ message?: string }>;
-      toast.error(err.response?.data?.message || "Failed to toggle featured");
     }
   },
 

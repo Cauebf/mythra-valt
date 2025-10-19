@@ -87,6 +87,7 @@ export type Product = {
 
 export type ProductStore = {
   products: Product[];
+  featuredProducts: Product[];
   loading: boolean;
 
   // setters
@@ -95,10 +96,9 @@ export type ProductStore = {
   // actions
   fetchAllProducts: () => Promise<void>;
   fetchProductsByCategory: (category: string) => Promise<void>;
-  fetchFeaturedProducts: () => Promise<void>;
+  fetchFeaturedProducts: (limit: number) => Promise<void>;
   createProduct: (data: Product) => Promise<Product | null>;
   deleteProduct: (productId: string) => Promise<void>;
-  toggleFeaturedProduct: (productId: string) => Promise<void>;
   getProductById: (id: string) => Promise<Product | null>;
 };
 

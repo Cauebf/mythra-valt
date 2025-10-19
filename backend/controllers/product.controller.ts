@@ -1,24 +1,8 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/db.js";
-import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import { capitalizeWords } from "../lib/utils.js";
-
-async function updateFeaturedProductsCache() {
-  try {
-    const featuredProducts = await prisma.product.findMany({
-      where: { isFeatured: true },
-    });
-
-    await redis.set(
-      "mythra_featured_products",
-      JSON.stringify(featuredProducts)
-    );
-  } catch (error) {
-    console.error("Error updating featured products cache:", error);
-  }
-}
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -92,24 +76,35 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const getFeaturedProducts = async (req: Request, res: Response) => {
   try {
-    const cached = await redis.get("mythra_featured_products");
-    if (cached) {
-      return res.json(JSON.parse(cached));
-    }
+    const limit = parseInt((req.query.limit as string) || "8", 10);
 
-    const featuredProducts = await prisma.product.findMany({
-      where: { isFeatured: true },
+    const products = await prisma.product.findMany({
+      include: {
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        reviews: true,
+        comments: true,
+        favorites: true,
+      },
     });
 
-    if (featuredProducts.length === 0) {
-      return res.status(404).json({ message: "No featured products found" });
-    }
+    // Embaralhar os produtos e limitar
+    const randomProducts = products
+      .sort(() => Math.random() - 0.5)
+      .slice(0, limit);
 
-    await redis.set(
-      "mythra_featured_products",
-      JSON.stringify(featuredProducts)
-    );
-    res.status(200).json(featuredProducts);
+    return res.status(200).json({ products: randomProducts });
   } catch (error) {
     console.error("Error getting featured products:", error);
     const message =
@@ -237,34 +232,6 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
     res.status(200).json({ products });
   } catch (error) {
     console.error("Error getting products by category:", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    res.status(500).json({ message });
-  }
-};
-
-export const toggleFeaturedProduct = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const product = await prisma.product.findUnique({
-      where: { id },
-    });
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const updatedProduct = await prisma.product.update({
-      where: { id },
-      data: { isFeatured: !product.isFeatured },
-    });
-
-    await updateFeaturedProductsCache();
-
-    res.status(200).json({ product: updatedProduct });
-  } catch (error) {
-    console.error("Error toggling featured product:", error);
     const message =
       error instanceof Error ? error.message : "Internal server error";
     res.status(500).json({ message });
