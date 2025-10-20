@@ -33,7 +33,7 @@ export default function CTA() {
                 variant="outline"
                 className="border-white text-foreground hover:bg-white/10 hover:text-white"
               >
-                <Link href="/create-listing">Venda Conosco</Link>
+                <Link href="/sell">Venda Conosco</Link>
               </Button>
             </div>
           </div>

@@ -21,7 +21,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/shop"
+                  href="/products"
                   className="text-[#F5F1E6]/80 hover:text-[#D4AF37] transition-colors"
                 >
                   Todas as Antiguidades
@@ -37,7 +37,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/create-listing"
+                  href="/sell"
                   className="text-[#F5F1E6]/80 hover:text-[#D4AF37] transition-colors"
                 >
                   Venda Conosco
@@ -90,8 +90,8 @@ export default function Footer() {
             <h4 className="text-lg font-serif text-[#D4AF37] mb-4">Contato</h4>
             <ul className="space-y-2">
               <li className="text-[#F5F1E6]/80">123 Street</li>
-              <li className="text-[#F5F1E6]/80">Cidade Feliz, VC 10001</li>
-              <li className="text-[#F5F1E6]/80">+1 (123) 456-7890</li>
+              <li className="text-[#F5F1E6]/80">Cedup, 10101</li>
+              <li className="text-[#F5F1E6]/80">+55 (123) 456-7890</li>
               <li className="text-[#F5F1E6]/80">contact@mythravalt.com</li>
             </ul>
             <div className="flex space-x-4 mt-4">
@@ -103,7 +103,8 @@ export default function Footer() {
                 <Instagram className="w-6 h-6" />
               </a>
               <a
-                href="#"
+                href="https://github.com/Cauebf"
+                target="_blank"
                 className="text-[#D4AF37] hover:text-[#F5F1E6] transition-colors"
               >
                 <span className="sr-only">GitHub</span>
