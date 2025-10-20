@@ -3,22 +3,22 @@ import CategoryCard from "../CategoryCard";
 
 const categories: CategoryCardType[] = [
   {
-    href: "/products?category=furniture",
+    href: "/products?category=Móveis",
     label: "Móveis",
     img: "https://images.unsplash.com/photo-1611486212557-88be5ff6f941?q=80&w=600&auhref=format&fit=crop",
   },
   {
-    href: "/products?category=art",
+    href: "/products?category=Arte",
     label: "Arte",
     img: "https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?q=80&w=600&auhref=format&fit=crop",
   },
   {
-    href: "/products?category=silverware",
+    href: "/products?category=Videogames",
     label: "Videogames",
     img: "https://images.unsplash.com/photo-1599408981219-70ea455d4b0b?w=500&auto=format&fit=crop&q=60",
   },
   {
-    href: "/products?category=jewelry",
+    href: "/products?category=Jóias",
     label: "Jóias",
     img: "https://images.unsplash.com/photo-1631832721838-44118cd1fad8?w=500&auto=format&fit=crop&q=60",
   },

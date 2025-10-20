@@ -18,6 +18,7 @@ import { Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ProductCard from "@/components/ProductCard";
 import { useProductStore } from "@/stores/useProductStore";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ProductsPage() {
   const {
@@ -26,8 +27,12 @@ export default function ProductsPage() {
     loading: storeLoading,
   } = useProductStore();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Local UI state for filters
-  const [category, setCategory] = useState<string>("");
+  // category: "all" === todas; otherwise any string (including custom)
+  const [category, setCategory] = useState<string>("all");
   const [eraFilters, setEraFilters] = useState<string[]>([]);
   const [conditionFilters, setConditionFilters] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000]);
@@ -40,7 +45,19 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchAllProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // initialize category from URL search param ?category=...
+  useEffect(() => {
+    const c = searchParams?.get("category");
+    if (!c || c === "" || c.toLowerCase() === "all") {
+      setCategory("all");
+    } else {
+      setCategory(c);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams?.toString()]);
 
   // derive facets from products
   const facets = useMemo(() => {
@@ -82,6 +99,27 @@ export default function ProductsPage() {
     setPriceRange([facets.priceMin, facets.priceMax]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facets.priceMin, facets.priceMax]);
+
+  // update URL search param when category changes
+  useEffect(() => {
+    // update only when router is available
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (!category || category === "all") {
+        params.delete("category");
+      } else {
+        params.set("category", category);
+      }
+      const qs = params.toString();
+      const pathname = window.location.pathname;
+      // use replace to avoid adding history entries on quick changes
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`);
+    } catch (err) {
+      // ignore on server or if window not available
+      // (this effect runs only in client)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
 
   // filtering logic
   const filteredProducts = useMemo(() => {
@@ -154,12 +192,21 @@ export default function ProductsPage() {
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
     );
   const resetFilters = () => {
-    setCategory("");
+    setCategory("all");
     setEraFilters([]);
     setConditionFilters([]);
     setPriceRange([facets.priceMin, facets.priceMax]);
     setSortBy("relevance");
     setSearch("");
+    // also remove category from URL
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.delete("category");
+      const pathname = window.location.pathname;
+      router.replace(
+        `${pathname}${params.toString() ? `?${params.toString()}` : ""}`
+      );
+    } catch (err) {}
   };
 
   // debounce search input to not re-render on every keystroke
@@ -169,6 +216,20 @@ export default function ProductsPage() {
       setSearch(v);
     }, 300);
   };
+
+  // helper when user chooses "Personalizado..."
+  const handleCustomCategory = () => {
+    const val = window.prompt("Digite o nome da categoria personalizada:");
+    if (val && val.trim()) {
+      setCategory(val.trim());
+    }
+  };
+
+  // checks if current category is already part of facet list
+  const isCategoryInFacets =
+    category && category !== "all"
+      ? facets.categories.includes(category)
+      : false;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -189,19 +250,47 @@ export default function ProductsPage() {
           <div className="space-y-6">
             <div>
               <Label className="mb-2">Categoria</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v)}>
+              <Select
+                value={category}
+                onValueChange={(v) => {
+                  if (v === "__custom__") {
+                    handleCustomCategory();
+                  } else {
+                    setCategory(v || "all");
+                  }
+                }}
+              >
                 <SelectTrigger className="w-full cursor-pointer">
-                  <SelectValue placeholder="Todas as categorias" />
+                  <SelectValue placeholder="Todas as categorias">
+                    {/* if custom string and not in facets we still want it displayed */}
+                    {!category || category === "all"
+                      ? "Todas as categorias"
+                      : category}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="cursor-pointer">
                     Todas as categorias
                   </SelectItem>
+
                   {facets.categories.map((c) => (
                     <SelectItem key={c} value={c} className="cursor-pointer">
                       {c}
                     </SelectItem>
                   ))}
+
+                  {/* if category is custom and not in facets, show it as option so it's visible */}
+                  {!isCategoryInFacets && category && category !== "all" ? (
+                    <SelectItem value={category} className="cursor-pointer">
+                      {category}
+                    </SelectItem>
+                  ) : null}
+
+                  <Separator />
+
+                  <SelectItem value="__custom__" className="cursor-pointer">
+                    Personalizado...
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -329,17 +418,39 @@ export default function ProductsPage() {
             <div className="space-y-6">
               <div>
                 <Label className="mb-2">Categoria</Label>
-                <Select value={category} onValueChange={(v) => setCategory(v)}>
+                <Select
+                  value={category}
+                  onValueChange={(v) => {
+                    if (v === "__custom__") {
+                      handleCustomCategory();
+                    } else {
+                      setCategory(v || "all");
+                    }
+                  }}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todas as categorias" />
+                    <SelectValue placeholder="Todas as categorias">
+                      {!category || category === "all"
+                        ? "Todas as categorias"
+                        : category}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as categorias</SelectItem>
+
                     {facets.categories.map((c) => (
                       <SelectItem key={c} value={c}>
                         {c}
                       </SelectItem>
                     ))}
+
+                    {!isCategoryInFacets && category && category !== "all" ? (
+                      <SelectItem value={category}>{category}</SelectItem>
+                    ) : null}
+
+                    <Separator />
+
+                    <SelectItem value="__custom__">Personalizado...</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
