@@ -18,7 +18,7 @@ import { Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ProductCard from "@/components/ProductCard";
 import { useProductStore } from "@/stores/useProductStore";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function ProductsPage() {
   const {
@@ -28,10 +28,9 @@ export default function ProductsPage() {
   } = useProductStore();
 
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Local UI state for filters
-  // category: "all" === todas; otherwise any string (including custom)
   const [category, setCategory] = useState<string>("all");
   const [eraFilters, setEraFilters] = useState<string[]>([]);
   const [conditionFilters, setConditionFilters] = useState<string[]>([]);
@@ -48,16 +47,17 @@ export default function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // initialize category from URL search param ?category=...
+  // initialize category from URL search param ?category=... (client-only)
   useEffect(() => {
-    const c = searchParams?.get("category");
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const c = params.get("category");
     if (!c || c === "" || c.toLowerCase() === "all") {
       setCategory("all");
     } else {
       setCategory(c);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams?.toString()]);
+  }, []);
 
   // derive facets from products
   const facets = useMemo(() => {
@@ -71,7 +71,6 @@ export default function ProductsPage() {
       if (p.category && (p as any).category?.name) {
         cats.add((p as any).category.name);
       } else if (typeof p.categoryId === "string") {
-        // fallback: show categoryId (not ideal)
         cats.add(p.categoryId ?? "Outros");
       }
       if (p.era) eras.add(p.era);
@@ -100,9 +99,9 @@ export default function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facets.priceMin, facets.priceMax]);
 
-  // update URL search param when category changes
+  // update URL search param when category changes (client-only)
   useEffect(() => {
-    // update only when router is available
+    if (typeof window === "undefined") return;
     try {
       const params = new URLSearchParams(window.location.search);
       if (!category || category === "all") {
@@ -111,12 +110,10 @@ export default function ProductsPage() {
         params.set("category", category);
       }
       const qs = params.toString();
-      const pathname = window.location.pathname;
-      // use replace to avoid adding history entries on quick changes
+      // use replace to avoid polluting history when users toggle
       router.replace(`${pathname}${qs ? `?${qs}` : ""}`);
     } catch (err) {
-      // ignore on server or if window not available
-      // (this effect runs only in client)
+      console.error(err);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
@@ -198,15 +195,17 @@ export default function ProductsPage() {
     setPriceRange([facets.priceMin, facets.priceMax]);
     setSortBy("relevance");
     setSearch("");
-    // also remove category from URL
+    // também atualiza a URL (client-only)
+    if (typeof window === "undefined") return;
     try {
       const params = new URLSearchParams(window.location.search);
       params.delete("category");
-      const pathname = window.location.pathname;
       router.replace(
         `${pathname}${params.toString() ? `?${params.toString()}` : ""}`
       );
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // debounce search input to not re-render on every keystroke
@@ -219,6 +218,7 @@ export default function ProductsPage() {
 
   // helper when user chooses "Personalizado..."
   const handleCustomCategory = () => {
+    if (typeof window === "undefined") return;
     const val = window.prompt("Digite o nome da categoria personalizada:");
     if (val && val.trim()) {
       setCategory(val.trim());
@@ -262,7 +262,6 @@ export default function ProductsPage() {
               >
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Todas as categorias">
-                    {/* if custom string and not in facets we still want it displayed */}
                     {!category || category === "all"
                       ? "Todas as categorias"
                       : category}
@@ -279,7 +278,6 @@ export default function ProductsPage() {
                     </SelectItem>
                   ))}
 
-                  {/* if category is custom and not in facets, show it as option so it's visible */}
                   {!isCategoryInFacets && category && category !== "all" ? (
                     <SelectItem value={category} className="cursor-pointer">
                       {category}
@@ -514,7 +512,7 @@ export default function ProductsPage() {
 
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer"
                 onClick={resetFilters}
               >
                 Limpar filtros
@@ -585,7 +583,7 @@ export default function ProductsPage() {
               <p className="text-muted-foreground mb-4">
                 Tente ajustar seus filtros ou buscar por outro termo.
               </p>
-              <Button onClick={resetFilters}>Limpar Filtros</Button>
+              <Button onClick={resetFilters} className="cursor-pointer">Limpar Filtros</Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
