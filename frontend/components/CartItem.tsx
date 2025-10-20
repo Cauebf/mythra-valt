@@ -26,8 +26,9 @@ export default function CartItem({ item }: Props) {
     typeof item.stock === "number" && item.quantity >= (item.stock ?? 0);
 
   return (
-    <div className="flex gap-4 p-4 rounded-lg border bg-white shadow-sm">
-      <div className="w-28 h-28 rounded overflow-hidden bg-gray-50 relative flex-shrink-0">
+    <div className="flex flex-col sm:flex-row gap-6 p-4 rounded-lg border bg-white shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out">
+      {/* Imagem do Produto */}
+      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-50 relative flex-shrink-0">
         <Image
           src={item.images?.[0] ?? "/placeholder.svg"}
           alt={item.title}
@@ -37,33 +38,39 @@ export default function CartItem({ item }: Props) {
       </div>
 
       <div className="flex-1 min-w-0">
+        {/* Título do Produto */}
         <a
-          className="block font-medium text-lg line-clamp-2"
+          className="block font-semibold text-xl line-clamp-2 text-gray-800 hover:text-primary transition-colors duration-200"
           href={`/products/${item.id}`}
         >
           {item.title}
         </a>
 
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center rounded-md border overflow-hidden">
+        <div className="mt-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Controle de Quantidade */}
+            <div className="inline-flex items-center rounded-md border overflow-hidden border-gray-300">
               <button
-                className="px-3 py-2 disabled:opacity-50 cursor-pointer"
+                className="pl-2 py-2 sm:px-4 sm:py-2 disabled:opacity-50 cursor-pointer"
                 onClick={() =>
                   updateQuantity(item.id, Math.max(1, item.quantity - 1))
                 }
                 aria-label="Diminuir quantidade"
                 disabled={isPending}
               >
-                <Minus className="w-4 h-4" />
+                <Minus className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
 
-              <div className={clsx("px-4 py-2 text-center min-w-[52px]")}>
+              <div
+                className={clsx(
+                  "px-0 py-2 sm:px-5 sm:py-2 text-center min-w-[60px] text-gray-800"
+                )}
+              >
                 {item.quantity}
               </div>
 
               <button
-                className="px-3 py-2 cursor-pointer disabled:opacity-50"
+                className="pr-2 py-2 sm:px-4 sm:py-2 cursor-pointer disabled:opacity-50"
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                 aria-label="Aumentar quantidade"
                 disabled={isPending || reachedStockLimit}
@@ -73,10 +80,11 @@ export default function CartItem({ item }: Props) {
                     : "Aumentar quantidade"
                 }
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
             </div>
 
+            {/* Remover Item */}
             <button
               onClick={() => removeFromCart(item.id)}
               className="text-sm text-red-600 hover:underline flex items-center gap-2 cursor-pointer"
@@ -87,9 +95,10 @@ export default function CartItem({ item }: Props) {
             </button>
           </div>
 
+          {/* Preço e Total */}
           <div className="text-right">
             <div className="text-sm text-muted-foreground">Unitário</div>
-            <div className="font-semibold text-lg">
+            <div className="font-semibold text-xl text-gray-800">
               {formatCurrency(item.price)}
             </div>
             <div className="text-sm text-muted-foreground mt-1">

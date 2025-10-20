@@ -29,8 +29,7 @@ export default function CartPage() {
 
   useEffect(() => {
     fetchCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchCart]);
 
   const total = useMemo(() => subtotal, [subtotal]);
 
@@ -60,9 +59,9 @@ export default function CartPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-8">
-        <main className="lg:col-span-8">
+    <div className="container mx-auto px-4 py-6 sm:py-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+        <main className="sm:col-span-8">
           <h1 className="text-3xl font-serif font-bold mb-6">Seu carrinho</h1>
 
           {items.length === 0 ? (
@@ -104,9 +103,9 @@ export default function CartPage() {
           )}
         </main>
 
-        <aside className="lg:col-span-4">
+        <aside className="sm:col-span-8 lg:col-span-4">
           <div className="sticky top-28 space-y-4">
-            <div className="rounded-lg border bg-white p-6 shadow">
+            <div className="rounded-lg border bg-white p-6 shadow-md">
               <h2 className="text-lg font-medium mb-4">Resumo do pedido</h2>
 
               <div className="flex justify-between mb-2">

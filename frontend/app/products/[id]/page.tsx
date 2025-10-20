@@ -402,7 +402,7 @@ export default function ProductPage({
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-3">
               <Button
                 className="flex-1 cursor-pointer"
                 size="lg"
