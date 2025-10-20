@@ -241,9 +241,13 @@ export const getAuctionsByCategory = async (req: Request, res: Response) => {
 
 export const placeBid = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id: auctionId } = req.params;
+    const { auctionId } = req.params;
     const { amount } = req.body;
     const bidderId = req?.user?.id;
+    
+    if (!auctionId) {
+      return res.status(400).json({ message: "Missing auctionId" });
+    }
 
     if (!bidderId) {
       return res.status(401).json({ message: "Unauthorized" });

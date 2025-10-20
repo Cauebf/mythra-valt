@@ -398,8 +398,7 @@ export default function ProductPage({
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                {product.quantity ?? 0} disponível • você já tem{" "}
-                {existingInCart}
+                {product.quantity ?? 0} disponível
               </p>
             </div>
 

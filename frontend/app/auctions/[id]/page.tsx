@@ -519,20 +519,6 @@ export default function AuctionPage({
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Related auctions */}
-      {/* {related.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-2xl font-serif font-bold mb-6">
-            Leilões Relacionados
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-            {related.map((a) => (
-              <AuctionCard key={a.id} auction={a} />
-            ))}
-          </div>
-        </section>
-      )} */}
     </div>
   );
 }

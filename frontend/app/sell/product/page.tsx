@@ -124,8 +124,8 @@ export default function SellProductPage() {
     if (!era) return "Selecione a época";
     if (!description.trim()) return "Preencha a descrição detalhada";
     if (!condition) return "Selecione o estado de conservação";
-    if (!price || Number.isNaN(Number(price)) || Number(price) < 0)
-      return "Informe um preço válido (>= 0)";
+    if (!price || Number.isNaN(Number(price)) || Number(price) < 0.5)
+      return "Informe um preço válido (>= R$0,50)";
     if (!quantity || quantity < 1) return "Quantidade mínima: 1";
     if (images.length === 0) return "Adicione ao menos 1 imagem";
     return null;
