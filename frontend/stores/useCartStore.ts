@@ -8,12 +8,13 @@ export type CartProduct = {
   price: number;
   images?: string[];
   quantity: number;
+  stock?: number; // estoque conhecido do produto
 };
 
 type CartState = {
   items: CartProduct[];
   loading: boolean;
-  pendingIds: string[]; // ids que estão em atualização (para spinner por-item)
+  pendingIds: string[]; // ids que estão em atualização (para indicador por-item)
   subtotal: number;
   _recalcSubtotal: () => void;
   fetchCart: () => Promise<void>;
@@ -30,7 +31,6 @@ export const useCartStore = create<CartState>((set, get) => ({
   pendingIds: [],
   subtotal: 0,
 
-  // calcula subtotal com base no estado atual
   _recalcSubtotal: () => {
     const items = get().items;
     const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
@@ -43,11 +43,12 @@ export const useCartStore = create<CartState>((set, get) => ({
       const res = await axios.get("/cart");
       const payload = res.data.items ?? res.data;
       const items: CartProduct[] = (payload || []).map((it: any) => ({
-        id: it.product.id ?? it.productId ?? it.id,
-        title: it.product.title ?? it.product.name ?? "Item",
-        price: Number(it.product.price ?? it.price ?? 0),
+        id: it.product?.id ?? it.productId ?? it.id,
+        title: it.product?.title ?? it.product?.name ?? "Item",
+        price: Number(it.product?.price ?? it.price ?? 0),
         images: it.product?.images ?? [],
         quantity: it.quantity ?? it.qty ?? 1,
+        stock: it.product?.quantity ?? it.product?.stock ?? undefined,
       }));
       set({ items, loading: false });
       get()._recalcSubtotal();
@@ -58,9 +59,18 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   addToCart: async (productId: string, quantity = 1) => {
-    // Otimista: se o item existe incrementa localmente, senão cria localmente com dados mínimos.
     const prev = get().items;
     const existing = prev.find((i) => i.id === productId);
+
+    // Se já existe e sabemos o stock localmente, bloqueia quando extrapolar
+    if (existing && typeof existing.stock === "number") {
+      if (existing.quantity + quantity > (existing.stock ?? Infinity)) {
+        toast.error("Quantidade solicitada excede o estoque disponível");
+        return;
+      }
+    }
+
+    // optimistic update local
     if (existing) {
       set({
         items: prev.map((i) =>
@@ -68,13 +78,13 @@ export const useCartStore = create<CartState>((set, get) => ({
         ),
       });
     } else {
-      // criar placeholder — idealmente você teria dados do produto no frontend
       const newItem: CartProduct = {
         id: productId,
         title: "Carregando título...",
         price: 0,
         images: [],
         quantity,
+        stock: undefined,
       };
       set({ items: [...prev, newItem] });
     }
@@ -82,7 +92,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     try {
       await axios.post("/cart", { productId, quantity });
-      // refresh para garantir dados consistentes (nome, preço, imagens)
+      // refresh para garantir dados corretos (nome, preço, imagens, stock)
       await get().fetchCart();
       toast.success("Adicionado ao carrinho");
     } catch (err: any) {
@@ -92,13 +102,14 @@ export const useCartStore = create<CartState>((set, get) => ({
       toast.error(
         err?.response?.data?.message || "Falha ao adicionar ao carrinho"
       );
+      throw err;
     }
   },
 
   clearCart: async () => {
     try {
       await axios.delete("/cart");
-      get().fetchCart();
+      await get().fetchCart();
       get().clearCartLocal();
       toast.success("Carrinho limpo com sucesso");
     } catch (err: any) {
@@ -108,7 +119,6 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   removeFromCart: async (productId: string) => {
     const prev = get().items;
-    // optimistic remove
     set({
       items: prev.filter((i) => i.id !== productId),
       pendingIds: [...get().pendingIds, productId],
@@ -117,7 +127,6 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     try {
       await axios.delete(`/cart/${encodeURIComponent(productId)}`);
-      // success -> remove pendingId
       set({ pendingIds: get().pendingIds.filter((id) => id !== productId) });
       toast.success("Removido do carrinho");
     } catch (err: any) {
@@ -135,7 +144,6 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   updateQuantity: async (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      // delegate to remove
       return get().removeFromCart(productId);
     }
 
@@ -143,10 +151,58 @@ export const useCartStore = create<CartState>((set, get) => ({
     const target = prev.find((i) => i.id === productId);
     if (!target) return;
 
-    // optimistic update local
+    // evita múltiplas requisições concorrentes para o mesmo item
+    if (get().pendingIds.includes(productId)) {
+      return;
+    }
+
+    let knownStock = target.stock;
+
+    // se stock desconhecido, tenta buscar do backend antes de validar
+    if (typeof knownStock !== "number") {
+      try {
+        const res = await axios.get(
+          `/products/${encodeURIComponent(productId)}`
+        );
+        const prod = res.data.product ?? res.data;
+
+        knownStock = prod?.quantity;
+
+        // grava o stock localmente no item (se encontrado)
+        if (knownStock !== undefined) {
+          set({
+            items: prev.map((i) =>
+              i.id === productId ? { ...i, stock: knownStock } : i
+            ),
+          });
+        }
+      } catch (err) {
+        // se falhar ao buscar stock não bloqueamos, mas avisamos
+        console.warn(
+          "Não foi possível obter estoque do produto antes do update",
+          err
+        );
+      }
+    }
+
+    // se sabemos o stock, limitamos newQuantity imediatamente
+    if (typeof knownStock === "number" && newQuantity > knownStock) {
+      toast.error("Não é possível ultrapassar a quantidade em estoque.");
+      // atualizar localmente para mostrar o máximo disponível
+      const clamped = knownStock;
+      set({
+        items: prev.map((i) =>
+          i.id === productId ? { ...i, quantity: clamped, stock: clamped } : i
+        ),
+      });
+      get()._recalcSubtotal();
+      return;
+    }
+
+    // optimistic update local e marca como pending
     set({
       items: prev.map((i) =>
-        i.id === productId ? { ...i, quantity: newQuantity } : i
+        i.id === productId ? { ...i, quantity: newQuantity, stock: knownStock } : i
       ),
       pendingIds: [...get().pendingIds, productId],
     });
@@ -159,7 +215,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       // success -> remove pending
       set({ pendingIds: get().pendingIds.filter((id) => id !== productId) });
     } catch (err: any) {
-      // rollback
+      // rollback em caso de erro
       set({
         items: prev,
         pendingIds: get().pendingIds.filter((id) => id !== productId),

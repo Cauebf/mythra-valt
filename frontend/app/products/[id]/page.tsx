@@ -37,7 +37,7 @@ export default function ProductPage({
   const { getProductById, products, fetchProductsByCategory } =
     useProductStore();
   const { reviews, fetchReviewsByProduct, createReview } = useReviewStore();
-  const { addToCart } = useCartStore();
+  const { addToCart, items: cartItems, fetchCart } = useCartStore();
   const { toggleFavorite, fetchUserFavorites, isFavoriteForProduct } =
     useFavoriteStore();
   const { fetchAllCategories } = useCategoryStore();
@@ -71,6 +71,8 @@ export default function ProductPage({
 
         await fetchReviewsByProduct(id);
         await fetchUserFavorites();
+        // ensure cart loaded so we can check existing quantities
+        await fetchCart();
       } catch (err) {
         console.error("Error loading product page", err);
         toast.error("Erro ao carregar o produto");
@@ -81,7 +83,6 @@ export default function ProductPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // compute averages from reviews loaded for this product
   const reviewCount = useMemo(() => {
     if (reviews && reviews.length > 0) return reviews.length;
     return product?._count?.reviews ?? 0;
@@ -92,7 +93,6 @@ export default function ProductPage({
       const sum = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0);
       return sum / reviews.length;
     }
-    // fallback to product.avgRating if backend provided it
     return product && (product as any).avgRating
       ? Number((product as any).avgRating)
       : 0;
@@ -103,9 +103,23 @@ export default function ProductPage({
     return user.id === product.ownerId || user.id === product.owner?.id;
   }, [product, user]);
 
+  // quantidade já no carrinho para este produto
+  const existingInCart = useMemo(() => {
+    if (!cartItems || !product) return 0;
+    const it = cartItems.find((c) => c.id === product.id);
+    return it ? it.quantity : 0;
+  }, [cartItems, product]);
+
+  // quanto o usuário ainda pode adicionar (somente para o botão de incremento local)
+  const maxAddable = useMemo(() => {
+    const stock = product?.quantity ?? Infinity;
+    return Math.max(0, (stock as number) - existingInCart);
+  }, [product, existingInCart]);
+
   const increment = () => {
     if (!product) return;
-    if (quantity < (product.quantity ?? 1)) setQuantity((q) => q + 1);
+    // limita pela quantidade que ainda pode ser adicionada sem ultrapassar o estoque total
+    if (quantity < maxAddable) setQuantity((q) => q + 1);
   };
   const decrement = () => {
     if (quantity > 1) setQuantity((q) => q - 1);
@@ -119,9 +133,23 @@ export default function ProductPage({
       );
       return;
     }
+
+    // Verifica se já tem esse produto no carrinho e se a soma ultrapassa o estoque
+    const stock = product.quantity ?? Infinity;
+    if (existingInCart + quantity > stock) {
+      toast.error(
+        "A quantidade solicitada somada ao que já está no carrinho ultrapassa o estoque."
+      );
+      // Ajusta visualmente para o máximo que pode ser adicionado
+      setQuantity(Math.max(1, Math.max(0, stock - existingInCart)));
+      return;
+    }
+
     setAddingToCart(true);
     try {
+      // addToCart faz update otimista localmente e atualiza o backend em background
       await addToCart(product.id, quantity);
+      // opcional: navega para o carrinho
       router.push("/cart");
     } catch (err) {
       console.error(err);
@@ -363,14 +391,15 @@ export default function ProductPage({
                   variant="outline"
                   size="icon"
                   onClick={increment}
-                  disabled={quantity >= (product.quantity ?? 1)}
+                  disabled={quantity >= maxAddable || maxAddable <= 0}
                   className="cursor-pointer"
                 >
                   +
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                {product.quantity ?? 0} disponível
+                {product.quantity ?? 0} disponível • você já tem{" "}
+                {existingInCart}
               </p>
             </div>
 
@@ -379,7 +408,7 @@ export default function ProductPage({
                 className="flex-1 cursor-pointer"
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={addingToCart || isSeller}
+                disabled={addingToCart || isSeller || maxAddable <= 0}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {isSeller
@@ -435,7 +464,7 @@ export default function ProductPage({
         </section>
       )}
 
-      {/* Reviews */}
+      {/* Reviews (mantive igual) */}
       <section className="mb-12">
         <h2 className="text-2xl font-serif font-bold mb-6">
           Avaliações e Comentários
