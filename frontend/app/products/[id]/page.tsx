@@ -70,9 +70,8 @@ export default function ProductPage({
         }
 
         await fetchReviewsByProduct(id);
-        await fetchUserFavorites();
-        // ensure cart loaded so we can check existing quantities
-        await fetchCart();
+        user && (await fetchUserFavorites());
+        user && (await fetchCart());
       } catch (err) {
         console.error("Error loading product page", err);
         toast.error("Erro ao carregar o produto");
@@ -126,6 +125,7 @@ export default function ProductPage({
   };
 
   const handleAddToCart = async () => {
+    if (!user) return router.push("/auth/login");
     if (!product || !product.id) return;
     if (isSeller) {
       toast.error(
@@ -159,11 +159,11 @@ export default function ProductPage({
   };
 
   const handleToggleFavorite = async () => {
+    if (!user) return router.push("/auth/login");
     if (!product || !product.id) return;
     setFavLoading(true);
     try {
       await toggleFavorite(product.id);
-      toast.success("Favorito atualizado");
     } catch (err) {
       console.error(err);
       toast.error("Erro ao atualizar favorito");
@@ -173,6 +173,7 @@ export default function ProductPage({
   };
 
   const handleSubmitReview = async () => {
+    if (!user) return router.push("/auth/login");
     if (!product || !product.id) return;
     if (isSeller) {
       toast.error("Vendedores não podem avaliar seu próprio produto.");

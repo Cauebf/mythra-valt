@@ -79,7 +79,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       set({ user: null });
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
-      toast.error(err.response?.data?.message || "Falha ao deslogar");
+      console.error(err.response?.data?.message || "Falha ao deslogar");
     }
   },
 

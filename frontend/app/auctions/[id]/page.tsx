@@ -21,6 +21,7 @@ import { useAuctionStore } from "@/stores/useAuctionStore";
 import { useCommentStore } from "@/stores/useCommentStore";
 import { useUserStore } from "@/stores/useUserStore";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function AuctionPage({
   params,
@@ -38,6 +39,7 @@ export default function AuctionPage({
   const [bidAmount, setBidAmount] = useState<string>("");
   const [commentText, setCommentText] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -105,6 +107,7 @@ export default function AuctionPage({
   }, [auction]);
 
   const handleBid = async () => {
+    if (!user) return router.push("/auth/login");
     if (!auction) return;
     if (isSeller) {
       toast.error("Você é o vendedor deste leilão e não pode dar lances.");
