@@ -70,8 +70,8 @@ export default function ProductPage({
         }
 
         await fetchReviewsByProduct(id);
-        user && (await fetchUserFavorites());
-        user && (await fetchCart());
+        if (user) await fetchUserFavorites();
+        if (user) await fetchCart();
       } catch (err) {
         console.error("Error loading product page", err);
         toast.error("Erro ao carregar o produto");
