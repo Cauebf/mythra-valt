@@ -1,24 +1,9 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/db.js";
-import redis from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import { capitalizeWords } from "../lib/utils.js";
 import { Decimal } from "@prisma/client/runtime/library";
-
-async function updateActiveAuctionsCache() {
-  try {
-    const now = new Date();
-    const activeAuctions = await prisma.auction.findMany({
-      where: { endTime: { gt: now } },
-      orderBy: { startTime: "desc" },
-    });
-
-    await redis.set("mythra_active_auctions", JSON.stringify(activeAuctions));
-  } catch (error) {
-    console.error("Error updating active auctions cache:", error);
-  }
-}
 
 export const getAllAuctions = async (req: Request, res: Response) => {
   try {
@@ -45,12 +30,11 @@ export const getAllAuctions = async (req: Request, res: Response) => {
 
 export const getActiveAuctions = async (req: Request, res: Response) => {
   try {
-    const cached = await redis.get("mythra_active_auctions");
-    if (cached) {
-      return res.status(200).json(JSON.parse(cached));
-    }
-
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : undefined;
     const now = new Date();
+
     const activeAuctions = await prisma.auction.findMany({
       where: { endTime: { gt: now } },
       include: {
@@ -60,9 +44,11 @@ export const getActiveAuctions = async (req: Request, res: Response) => {
       orderBy: { startTime: "desc" },
     });
 
-    await redis.set("mythra_active_auctions", JSON.stringify(activeAuctions));
+    const shuffledAuctions = activeAuctions.sort(() => Math.random() - 0.5);
+    const finalAuctions =
+      limit !== undefined ? shuffledAuctions.slice(0, limit) : shuffledAuctions;
 
-    res.status(200).json(activeAuctions);
+    res.status(200).json({ auctions: finalAuctions });
   } catch (error) {
     console.error("Error getting active auctions:", error);
     const message =
@@ -183,9 +169,6 @@ export const createAuction = async (
       },
     });
 
-    // update cache of active auctions (if needed)
-    await updateActiveAuctionsCache();
-
     res.status(201).json({ auction });
   } catch (error) {
     console.error("Error creating auction:", error);
@@ -223,9 +206,6 @@ export const deleteAuction = async (req: Request, res: Response) => {
     }
 
     await prisma.auction.delete({ where: { id } });
-
-    // refresh active auctions cache
-    await updateActiveAuctionsCache();
 
     res.status(200).json({ message: "Auction deleted successfully" });
   } catch (error) {
@@ -319,8 +299,6 @@ export const placeBid = async (req: AuthenticatedRequest, res: Response) => {
       },
     });
 
-    await updateActiveAuctionsCache();
-
     res.status(201).json({ bid });
   } catch (error) {
     console.error("Error placing bid:", error);
@@ -355,7 +333,6 @@ export const createComment = async (
 ) => {
   try {
     const { auctionId } = req.params;
-    console.log(auctionId)
     const { content } = req.body;
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });

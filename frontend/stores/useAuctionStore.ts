@@ -34,11 +34,13 @@ export const useAuctionStore = create<AuctionStore>((set, get) => ({
     }
   },
 
-  fetchActiveAuctions: async () => {
+  fetchActiveAuctions: async (limit) => {
     set({ loading: true });
     try {
-      const res = await axios.get("/auctions/active");
-      const payload = res.data ?? [];
+      const res = limit
+        ? await axios.get(`/auctions/active?limit=${limit}`)
+        : await axios.get("/auctions/active");
+      const payload = res.data.auctions ?? [];
       const active: Auction[] = (payload || []).map((raw: any) => ({
         ...raw,
         startingBid:

@@ -64,7 +64,6 @@ export type Product = {
   quantity: number;
   images: string[];
   condition?: Condition;
-  isFeatured?: boolean;
   categoryId?: string;
   ownerId?: string;
   weight?: number | null;
@@ -164,12 +163,10 @@ export type AuctionStore = {
 
   setAuctions: (a: Auction[]) => void;
   setActiveAuctions: (a: Auction[]) => void;
-
   fetchAllAuctions: () => Promise<void>;
-  fetchActiveAuctions: () => Promise<void>;
+  fetchActiveAuctions: (limit?: number) => Promise<void>;
   fetchAuctionById: (id: string) => Promise<Auction | null>;
   fetchAuctionsByCategory: (category: string) => Promise<void>;
-
   createAuction: (payload: CreateAuctionDto) => Promise<Auction | null>;
   deleteAuction: (id: string) => Promise<boolean>;
   placeBid: (auctionId: string, amount: number) => Promise<Bid | null>;
